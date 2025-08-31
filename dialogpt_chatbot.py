@@ -4,11 +4,17 @@ import torch
 class AIchatbot:
     def __init__(self):
         print("Loading the model (this might take a minute)...")
-        # Load a smaller model specifically trained for dialogue
-        self.model_name = "microsoft/DialoGPT-small"
+        # Using GPT-2 medium for better quality responses
+        self.model_name = "gpt2-medium"
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
         self.model = AutoModelForCausalLM.from_pretrained(self.model_name)
-        self.conversation_history = []
+        
+        # Configure the tokenizer
+        self.tokenizer.pad_token = self.tokenizer.eos_token
+        self.model.eval()  # Set to evaluation mode
+        
+        # Initialize conversation history with system prompt
+        self.conversation_history = ["You are a helpful, respectful, and honest AI assistant."]
         print("Model loaded successfully!")
 
     def get_response(self, user_input):
@@ -17,33 +23,43 @@ class AIchatbot:
             if len(self.conversation_history) > 4:
                 self.conversation_history = self.conversation_history[-4:]
             
-            # Add user input to history
-            self.conversation_history.append(user_input)
+            # Format the conversation
+            prompt = "\n".join(self.conversation_history[-4:])  # Keep last few exchanges for context
+            prompt += f"\nHuman: {user_input}\nAssistant:"
             
-            # Encode the input
-            input_ids = self.tokenizer.encode(" ".join(self.conversation_history) + self.tokenizer.eos_token, 
-                                            return_tensors='pt')
+            # Encode the input with attention mask
+            encoded = self.tokenizer(prompt, return_tensors='pt', truncation=True, max_length=512)
+            input_ids = encoded['input_ids']
+            attention_mask = encoded['attention_mask']
             
             # Generate response
             with torch.no_grad():
-                response_ids = self.model.generate(
+                outputs = self.model.generate(
                     input_ids,
-                    max_length=1000,
-                    pad_token_id=self.tokenizer.eos_token_id,
-                    no_repeat_ngram_size=3,
-                    do_sample=True,
+                    attention_mask=attention_mask,
+                    max_new_tokens=100,
+                    temperature=0.7,
                     top_k=50,
                     top_p=0.9,
-                    temperature=0.7
+                    do_sample=True,
+                    no_repeat_ngram_size=3,
+                    num_beams=3,
+                    early_stopping=True
                 )
             
-            # Decode the response
-            bot_response = self.tokenizer.decode(response_ids[:, input_ids.shape[-1]:][0], 
-                                               skip_special_tokens=True)
+            # Extract the new content
+            response = self.tokenizer.decode(outputs[0][input_ids.shape[-1]:], skip_special_tokens=True)
             
-            if bot_response.strip():
-                self.conversation_history.append(bot_response)
-                return bot_response
+            # Clean up the response
+            response = response.strip()
+            if not response or len(response) < 2:
+                response = "I understand. How can I help you further?"
+                
+            # Update conversation history
+            self.conversation_history.append(f"Human: {user_input}")
+            self.conversation_history.append(f"Assistant: {response}")
+            
+            return response
             return "I'm here to help. What would you like to talk about?"
             
         except Exception as e:
