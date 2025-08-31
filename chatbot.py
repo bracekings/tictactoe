@@ -1,16 +1,12 @@
-import requests
+from transformers import pipeline
 import os
-import json
 
 class AIchatbot:
     def __init__(self):
-        # Initialize with your API token
-        self.api_token = os.getenv("HUGGINGFACE_API_TOKEN")
-        if not self.api_token:
-            raise ValueError("HUGGINGFACE_API_TOKEN environment variable is not set")
+        print("Loading the model (this might take a minute)...")
+        # Using a small model that's quick to load
+        self.generator = pipeline('text-generation', model='distilgpt2')
         self.conversation_history = []
-        # Using DialoGPT-medium for chat
-        self.model = "microsoft/DialoGPT-medium"
 
     def get_response(self, user_input):
         try:
@@ -21,46 +17,49 @@ class AIchatbot:
             # Add user input to history
             self.conversation_history.append(user_input)
             
-            # Make API request to Hugging Face
-            api_url = "https://api-inference.huggingface.co/models/gpt2"
-            headers = {
-                "Authorization": f"Bearer {self.api_token}",
-                "Content-Type": "application/json"
-            }
+            # Create prompt from conversation history
+            prompt = " || ".join(self.conversation_history[-3:]) + " ||"
             
-            # Prepare the payload
-            payload = {
-                "inputs": user_input,
-                "parameters": {
-                    "max_length": 50,
-                    "num_return_sequences": 1
-                }
-            }
-            
-            # Make the request
-            print("Sending request to DialoGPT...")
-            response = requests.post(api_url, headers=headers, json=payload)
-            print(f"Response status: {response.status_code}")
-            
-            if response.status_code != 200:
-                print(f"API Error: Status {response.status_code}")
-                print(f"Response: {response.text}")
-                return "I'm having trouble connecting. Please try again."
+            # Generate response
+            response = self.generator(
+                prompt,
+                max_length=50,
+                num_return_sequences=1,
+                temperature=0.7,
+                pad_token_id=50256
+            )
             
             # Parse the response
             try:
                 response_json = response.json()
-                print(f"Raw response: {response_json}")
+                print(f"Response received: {response.status_code}")
+                
                 if isinstance(response_json, list) and len(response_json) > 0:
                     bot_response = response_json[0].get('generated_text', '').strip()
+                    
+                    # Clean up the response
                     if bot_response:
-                        self.conversation_history.append(bot_response)
-                        return bot_response
-                return "I'm not sure how to respond to that."
-            except json.JSONDecodeError as e:
-                print(f"JSON decode error: {e}")
-                print(f"Raw response content: {response.content}")
-                return "I'm having trouble understanding the response."
+                        # Remove any extra "Assistant:" or "User:" prefixes
+                        if "Assistant:" in bot_response:
+                            bot_response = bot_response.split("Assistant:", 1)[1]
+                        if "User:" in bot_response:
+                            bot_response = bot_response.split("User:", 1)[0]
+                        
+                        bot_response = bot_response.strip()
+                        if bot_response:
+                            self.conversation_history.append(bot_response)
+                            return bot_response
+                
+                return "I'm here to help. What would you like to talk about?"
+                
+            except Exception as e:
+                print(f"Error processing response: {str(e)}")
+                if response.status_code == 503:
+                    return "I'm currently loading. Please try again in a few seconds."
+                elif response.status_code == 404:
+                    return "I'm having trouble accessing my language model. Please check the model configuration."
+                else:
+                    return "I encountered an error. Let's try again."
             
         except requests.exceptions.RequestException as e:
             print(f"Network error: {str(e)}")
