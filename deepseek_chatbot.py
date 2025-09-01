@@ -1,57 +1,56 @@
 import os
 import json
 from openai import OpenAI
-from huggingface_hub import InferenceClient
 from playsound import playsound
+import asyncio
+try:
+    import edge_tts  # online TTS fallback (Microsoft Edge voices)
+except Exception:
+    edge_tts = None
 try:
     import pyttsx3  # fallback TTS (offline, Windows SAPI5)
 except Exception:
     pyttsx3 = None
-import soundfile as sf
 
 class AIchatbot:
     def __init__(self, token=None, system_prompt="You are a helpful assistant.", memory_file="chat_memory.json"):
         print("Initializing AI chatbot...")
-        
-        # Try to get token from parameter first, then environment
-        self.hf_token = token or os.getenv('HF_TOKEN') or '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'
+
+        # Auth and configuration
+        self.hf_token = token or os.getenv("HF_TOKEN")
         if not self.hf_token:
             raise ValueError("No Hugging Face token provided.")
         self.system_prompt = system_prompt
         self.memory_file = memory_file
         self.sticky_file = "user_profile.json"
+
         # Initialize OpenAI client with Hugging Face router
         try:
             self.client = OpenAI(
                 base_url="https://router.huggingface.co/v1",
-                api_key=self.hf_token
+                api_key=self.hf_token,
             )
-            
-            # Initialize conversation history
-            self.conversation_history = self.load_memory()
-            self.sticky_memory = self.load_sticky_memory()
             print("Moxie is awake and ready to cause trouble.")
-            
         except Exception as e:
             print(f"Error initializing chatbot: {str(e)}")
             raise ValueError("Failed to initialize chatbot. Please check your Hugging Face token.")
-        
+
+        # Initialize conversation state
         self.conversation_history = self.load_memory()
         self.sticky_memory = self.load_sticky_memory()
-        print("moxie is awake and ready to cause trouble.")
 
-        # TTS configuration
-        self.tts_model = os.getenv("HF_TTS_MODEL", "facebook/mms-tts-eng")
-        # Initialize HF Inference client bound to a known serverless TTS model
-        self.tts_client = InferenceClient(
-            model=self.tts_model,
-            provider="serverless",
-            token=self.hf_token,
-        )
-
-        self.audio_output_path = "moxie_response.wav"
-        self.voice_clone_path = None #set by user via voice command
+        # TTS configuration (we will use Edge TTS first, then pyttsx3)
+        self.audio_output_mp3 = "moxie_response.mp3"
+        self.voice_clone_path = None  # set by user via voice command
         self.speech_enabled = True  # 🔊 default: Moxie talks
+
+        # Initialize reusable offline TTS engine (Windows-friendly)
+        self.tts_engine = None
+        if pyttsx3 is not None:
+            try:
+                self.tts_engine = pyttsx3.init()
+            except Exception as e:
+                print(f"[TTS Fallback Init] pyttsx3 init failed: {e}")
 
     def load_memory(self):
         if os.path.exists(self.memory_file):
@@ -82,59 +81,56 @@ class AIchatbot:
         """Convert text to speech and play it."""
         if not self.speech_enabled:
             return  # 🔇 speech is muted
-        try:
-            # Generate speech audio using Hugging Face Inference API
-            # Note: InferenceClient.text_to_speech returns WAV bytes when model is bound on client
-            audio_bytes = self.tts_client.text_to_speech(text)
-
-            # If bytes are returned, write directly to file; otherwise, try dict fallback
-            if isinstance(audio_bytes, (bytes, bytearray)):
-                with open(self.audio_output_path, "wb") as f:
-                    f.write(audio_bytes)
-                # Try default player first
+        # Fallback 1: Edge TTS (online, reliable)
+        if edge_tts is not None:
+            try:
+                async def _synthesize_edge(text, outfile, voice):
+                    communicate = edge_tts.Communicate(text=text, voice=voice)
+                    await communicate.save(outfile)
+                voice = os.getenv("EDGE_TTS_VOICE", "en-US-JennyNeural")
+                loop = asyncio.new_event_loop()
                 try:
-                    playsound(self.audio_output_path)
+                    asyncio.set_event_loop(loop)
+                    loop.run_until_complete(_synthesize_edge(text, self.audio_output_mp3, voice))
+                finally:
+                    try:
+                        loop.close()
+                    except Exception:
+                        pass
+                    try:
+                        asyncio.set_event_loop(None)
+                    except Exception:
+                        pass
+                try:
+                    playsound(self.audio_output_mp3)
                 except Exception:
-                    # Fallback: use Windows native sound if available
                     if os.name == "nt":
                         try:
                             import winsound
-                            winsound.PlaySound(self.audio_output_path, winsound.SND_FILENAME)
+                            winsound.PlaySound(self.audio_output_mp3, winsound.SND_FILENAME)
                         except Exception:
-                            raise
-                    else:
-                        raise
-            else:
-                # Fallback for potential dict response with numpy array + sampling_rate
+                            pass
+                return
+            except Exception as e2:
+                print(f"[TTS Fallback Error] edge-tts failed: {e2}")
+        # Fallback 2: pyttsx3 (offline, Windows-friendly)
+        if self.tts_engine is not None or pyttsx3 is not None:
+            try:
+                engine = self.tts_engine or pyttsx3.init()
+                # Stop any previous queued speech to avoid stacking
                 try:
-                    data = audio_bytes.get("audio")
-                    sr = audio_bytes.get("sampling_rate", 22050)
-                    sf.write(self.audio_output_path, data, sr)
-                    try:
-                        playsound(self.audio_output_path)
-                    except Exception:
-                        if os.name == "nt":
-                            try:
-                                import winsound
-                                winsound.PlaySound(self.audio_output_path, winsound.SND_FILENAME)
-                            except Exception:
-                                raise
-                        else:
-                            raise
+                    engine.stop()
                 except Exception:
-                    raise TypeError("Unexpected TTS response format from InferenceClient.text_to_speech")
-        except Exception as e:
-            print(f"[TTS Error] Could not speak via HF: {str(e)}")
-            # Fallback to pyttsx3 (offline, Windows-friendly)
-            if pyttsx3 is not None:
-                try:
-                    engine = pyttsx3.init()
-                    engine.say(text)
-                    engine.runAndWait()
-                    return
-                except Exception as e2:
-                    print(f"[TTS Fallback Error] pyttsx3 failed: {e2}")
-            # If no fallback available, remain silent
+                    pass
+                engine.say(text)
+                engine.runAndWait()
+                # Cache engine for reuse
+                if self.tts_engine is None:
+                    self.tts_engine = engine
+                return
+            except Exception as e2:
+                print(f"[TTS Fallback Error] pyttsx3 failed: {e2}")
+        # If no fallback available, remain silent
     
     def get_response(self, user_input):
         try:
