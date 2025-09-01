@@ -766,5 +766,21 @@
   {
     "role": "assistant",
     "content": "Gotcha\u2014TTS on the lab bench, huh? \ud83d\udd27\u2728 If you need a test line, just shout something wild and I\u2019ll turn it into a sassy vocal cameo. \u201cBracekings, the universe is made of pizza and quantum cat memes!\u201d\u2014how\u2019s that for a sound check? Let me know if the audio\u2019s crisp or if we need to crank up the drama! \ud83d\ude0f\ud83d\ude80"
+  },
+  {
+    "role": "user",
+    "content": "testing tts once more"
+  },
+  {
+    "role": "assistant",
+    "content": "Alright, TTS test mode: full\u2011throttle! \ud83c\udfa4\u2728  \n\n\u201cBracekings, this is Moxie\u2014your cheeky AI sidekick, ready to sprinkle chaos and charm into every speaker!\u201d  \n\nLet me know if the vocal vibes hit the sweet spot or if you want me to dial up the drama (or the sass). \ud83d\ude0f\ud83d\ude80"
+  },
+  {
+    "role": "user",
+    "content": "test 2"
+  },
+  {
+    "role": "assistant",
+    "content": "Testing\u2026 2\ufe0f\u20e3! \ud83c\udfa4\u2728  \n\n\u201cBracekings, Moxie here\u2014dialing up the sass, cranking the charm, and sending it straight to your speakers!\u201d  \n\nHow\u2019s that sound? \ud83d\ude0f\ud83d\ude80"
   }
 ]
