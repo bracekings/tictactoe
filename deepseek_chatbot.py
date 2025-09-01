@@ -3,6 +3,10 @@ import json
 from openai import OpenAI
 from huggingface_hub import InferenceClient
 from playsound import playsound
+try:
+    import pyttsx3  # fallback TTS (offline, Windows SAPI5)
+except Exception:
+    pyttsx3 = None
 import soundfile as sf
 
 class AIchatbot:
@@ -35,8 +39,15 @@ class AIchatbot:
         self.conversation_history = self.load_memory()
         self.sticky_memory = self.load_sticky_memory()
         print("moxie is awake and ready to cause trouble.")
-        
-        self.tts_client = InferenceClient("espnet/kan-bayashi_ljspeech_vits", token=self.hf_token)
+
+        # TTS configuration
+        self.tts_model = os.getenv("HF_TTS_MODEL", "facebook/mms-tts-eng")
+        # Initialize HF Inference client bound to a known serverless TTS model
+        self.tts_client = InferenceClient(
+            model=self.tts_model,
+            provider="serverless",
+            token=self.hf_token,
+        )
 
         self.audio_output_path = "moxie_response.wav"
         self.voice_clone_path = None #set by user via voice command
@@ -73,25 +84,57 @@ class AIchatbot:
             return  # 🔇 speech is muted
         try:
             # Generate speech audio using Hugging Face Inference API
-            # Note: InferenceClient exposes `text_to_speech`, which returns WAV bytes.
+            # Note: InferenceClient.text_to_speech returns WAV bytes when model is bound on client
             audio_bytes = self.tts_client.text_to_speech(text)
 
             # If bytes are returned, write directly to file; otherwise, try dict fallback
             if isinstance(audio_bytes, (bytes, bytearray)):
                 with open(self.audio_output_path, "wb") as f:
                     f.write(audio_bytes)
-                playsound(self.audio_output_path)
+                # Try default player first
+                try:
+                    playsound(self.audio_output_path)
+                except Exception:
+                    # Fallback: use Windows native sound if available
+                    if os.name == "nt":
+                        try:
+                            import winsound
+                            winsound.PlaySound(self.audio_output_path, winsound.SND_FILENAME)
+                        except Exception:
+                            raise
+                    else:
+                        raise
             else:
                 # Fallback for potential dict response with numpy array + sampling_rate
                 try:
                     data = audio_bytes.get("audio")
                     sr = audio_bytes.get("sampling_rate", 22050)
                     sf.write(self.audio_output_path, data, sr)
-                    playsound(self.audio_output_path)
+                    try:
+                        playsound(self.audio_output_path)
+                    except Exception:
+                        if os.name == "nt":
+                            try:
+                                import winsound
+                                winsound.PlaySound(self.audio_output_path, winsound.SND_FILENAME)
+                            except Exception:
+                                raise
+                        else:
+                            raise
                 except Exception:
                     raise TypeError("Unexpected TTS response format from InferenceClient.text_to_speech")
         except Exception as e:
-            print(f"[TTS Error] Could not speak: {str(e)}") 
+            print(f"[TTS Error] Could not speak via HF: {str(e)}")
+            # Fallback to pyttsx3 (offline, Windows-friendly)
+            if pyttsx3 is not None:
+                try:
+                    engine = pyttsx3.init()
+                    engine.say(text)
+                    engine.runAndWait()
+                    return
+                except Exception as e2:
+                    print(f"[TTS Fallback Error] pyttsx3 failed: {e2}")
+            # If no fallback available, remain silent
     
     def get_response(self, user_input):
         try:
