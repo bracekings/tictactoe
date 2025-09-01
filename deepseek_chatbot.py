@@ -1,6 +1,9 @@
 import os
 import json
 from openai import OpenAI
+from huggingface_hub import InferenceClient
+from playsound import playsound
+import soundfile as sf
 
 class AIchatbot:
     def __init__(self, token=None, system_prompt="You are a helpful assistant.", memory_file="chat_memory.json"):
@@ -28,6 +31,16 @@ class AIchatbot:
         except Exception as e:
             print(f"Error initializing chatbot: {str(e)}")
             raise ValueError("Failed to initialize chatbot. Please check your Hugging Face token.")
+        
+        self.conversation_history = self.load_memory()
+        self.sticky_memory = self.load_sticky_memory()
+        print("moxie is awake and ready to cause trouble.")
+        
+        self.tts_client = InferenceClient("espnet/kan-bayashi_ljspeech_vits", token=self.hf_token)
+
+        self.audio_output_path = "moxie_response.wav"
+        self.voice_clone_path = None #set by user via voice command
+        self.speech_enabled = True  # 🔊 default: Moxie talks
 
     def load_memory(self):
         if os.path.exists(self.memory_file):
@@ -53,6 +66,18 @@ class AIchatbot:
             except Exception as e:
                 print(f"Error loading sticky memory: {str(e)}")
         return {}
+    
+    def speak(self, text):
+        """Convert text to speech and play it."""
+        if not self.speech_enabled:
+            return  # 🔇 speech is muted
+        try:
+              # Get waveform from TTS model
+            audio = self.tts_client.text_to_audio(text)
+            sf.write(self.audio_output_path, audio["audio"], audio["sampling_rate"])
+            playsound(self.audio_output_path)
+        except Exception as e:
+            print(f"[TTS Error] Could not speak: {str(e)}") 
     
     def get_response(self, user_input):
         try:
@@ -85,6 +110,10 @@ class AIchatbot:
             bot_response = completion.choices[0].message.content.strip()
             self.conversation_history.append({"role": "assistant", "content": bot_response})
             self.save_memory()  # Save updated history
+
+            # 🔊 Speak the response (if enabled)
+            self.speak(bot_response)
+
 
             # Update conversation history
             return bot_response or "I'm here to help. What would you like to talk about?"
@@ -123,7 +152,7 @@ def main():
                 continue
             
             # Allow user to update sticky memory with command like: !remember name=Alex
-            if user_input.lower().startswith("!remember "):
+            elif user_input.lower().startswith("!remember "):
                 try:
                     fact = user_input.replace("!remember ", "")
                     key, value = fact.split("=", 1)
@@ -135,6 +164,31 @@ def main():
                 except:
                     print("\nMoxie: That wasn’t formatted right. Try: !remember name=Alex")
                 continue
+            elif user_input.lower().startswith("!voice "):
+                filepath = user_input.replace("!voice ", "").strip()
+                if os.path.exists(filepath):
+                    chatbot.voice_clone_path = filepath
+                    print("\nMoxie: Ugh, fine. I’ll sound like *that* now.")
+                else:
+                    print("\nMoxie: That file doesn’t exist. Try again.")
+                continue
+            elif user_input.lower() == "!mute":
+                chatbot.speech_enabled = False
+                print("\nMoxie: Fine, I’ll shut up. Happy?")
+                continue
+            elif user_input.lower() == "!unmute":
+                chatbot.speech_enabled = True
+                print("\nMoxie: Ha! I’m back, you can’t silence me forever!")
+                continue
+            elif user_input.lower().startswith("!say "):
+                text = user_input.replace("!say ", "").strip()
+                if text:
+                    print(f"\nMoxie (debug say): {text}")
+                    chatbot.speak(text)
+                else:
+                    print("\nMoxie: Say what?? Give me some words!")
+                continue
+
 
             response = chatbot.get_response(user_input)
             print(f"\nMoxie: {response}")
