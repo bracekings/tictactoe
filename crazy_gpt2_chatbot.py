@@ -23,7 +23,10 @@ class AIchatbot:
             system_prompt = "You are a witty, friendly AI assistant who loves helping people."
             prompt = f"{system_prompt}\n{self.chat_history}"
             self.chat_history += f"Human: {user_input}\nAssistant:"
-            prompt = self.chat_history
+            history_lines = self.chat_history.strip().split('\n')
+            if len(history_lines) > 8:
+                self.chat_history = '\n'.join(history_lines[-8:])
+            prompt = f"{system_prompt}\n{self.chat_history}"
             # Limit history to last 4 exchanges
 
 
@@ -38,14 +41,12 @@ class AIchatbot:
                 outputs = self.model.generate(
                     input_ids,
                     attention_mask=attention_mask,
-                    max_new_tokens=50,
+                    max_new_tokens=100,
                     num_return_sequences=1,
                     temperature=0.7,
-                    top_k=50,
-                    top_p=0.95,
+                    pad_token_id=self.tokenizer.eos_token_id,
                     repetition_penalty=1.2,
                     no_repeat_ngram_size=2,
-                    early_stopping=True
                 )
             
             # Decode the response and clean it up
