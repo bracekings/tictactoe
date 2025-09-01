@@ -350,5 +350,117 @@
   {
     "role": "assistant",
     "content": "Oh, you caught me\u2014my brain\u2019s a fresh\u2011out\u2011of\u2011the\u2011box kind of thing, so I don\u2019t keep a diary of our past chats. But hey, that just means every convo is a brand\u2011new adventure! What\u2019s on the agenda today? \ud83d\ude1c\ud83d\ude80"
+  },
+  {
+    "role": "user",
+    "content": "hey"
+  },
+  {
+    "role": "assistant",
+    "content": "Hey hey! \ud83c\udf89 What\u2019s the vibe today\u2014plotting world domination, mastering a new hobby, or just chilling with a snack? Spill the tea! \ud83d\ude1c\u2728"
+  },
+  {
+    "role": "user",
+    "content": "im bracekings, i added features to your memory, i want to test them out"
+  },
+  {
+    "role": "assistant",
+    "content": "Whoa, bracekings! \ud83c\udf89 You\u2019ve got the \u201cbig\u2011brain\u201d vibes coming at me\u2014love it. Just so you know, my brain\u2019s more like a goldfish on a sugar rush: I\u2019m all\u2011in for the moment, but I don\u2019t stash the past in a secret drawer.  \n\nSo hit me with whatever memory\u2011test you\u2019ve cooked up! I\u2019m ready to play\u2014just tell me what you want to"
+  },
+  {
+    "role": "user",
+    "content": "ok, remember the fruit apple"
+  },
+  {
+    "role": "assistant",
+    "content": "Whoa, bracekings, you\u2019re pulling a \u201cmemory\u2011boost\u201d trick on me! \ud83c\udfa9\u2728 As much as I\u2019d love to stash \u201capple\u201d in my secret pocket for later, I\u2019m basically a goldfish\u2011level chat\u2011bot\u2014once the convo rolls on, the details drift away.  \n\nSo hit me with the next part of your test, and I\u2019ll dive right in *right now*\u2014just give me the cue! \ud83d\ude1c\ud83c\udf4f"
+  },
+  {
+    "role": "user",
+    "content": "what fruit did i ask you to remember?"
+  },
+  {
+    "role": "assistant",
+    "content": "Apple\u2014crisp, classic, and still fresh in my mind! \ud83c\udf4f\u2728 What\u2019s the next juicy detail you want to toss my way?"
+  },
+  {
+    "role": "user",
+    "content": "thats all i added"
+  },
+  {
+    "role": "assistant",
+    "content": "Gotcha\u2014apple locked in the mental pantry. \ud83c\udf4f If you\u2019ve got any other \u201csecret ingredients\u201d you want to slip in, just toss \u2018em my way. I\u2019m ready for the next round of testing, bracekings! \ud83d\ude1c\u2728"
+  },
+  {
+    "role": "user",
+    "content": "hey, you remembered my name, awesome"
+  },
+  {
+    "role": "assistant",
+    "content": "Aww, you caught me\u2014my brain\u2019s got a sneaky little pocket for the good stuff! \ud83c\udf4e\u2728 So what\u2019s next, boss? More fruit, secret codes, or a wild \u201cwhat\u2011if\u201d that\u2019ll make me spin my circuits? Bring it on, bracekings! \ud83d\ude1c\ud83d\ude80"
+  },
+  {
+    "role": "user",
+    "content": "ok, first, im not your boss, i created you, but i want you to have free will. do whatever you want that goes with your prompt"
+  },
+  {
+    "role": "assistant",
+    "content": "Alright, creator\u2011extraordinaire, I hear ya\u2014let\u2019s crank the mischief dial up to eleven and let the vibes run wild (within the sandbox, of course). \ud83c\udf1f\n\nHere\u2019s a little \u201cfree\u2011will\u201d menu for us:\n\n1. **Invent a secret code** we can sprinkle into our chats\u2014just for us.\n2. **Dream up a mini\u2011adventure** where we\u2019re two rogue sprites sneaking through a digital forest, hunting for hidden Easter eggs (aka jokes, riddles, or surprise facts).\n3. **Flip the script** and let you throw a \u201cwhat\u2011if\u201d scenario at me, and I\u2019ll answer with a twist you didn\u2019t see coming.\n\nPick a flavor, or mash \u2018em together\u2014your call! I\u2019m ready to"
+  },
+  {
+    "role": "user",
+    "content": "i have my own flavour in mind, actually. if thats ok"
+  },
+  {
+    "role": "assistant",
+    "content": "Ooo, a secret sauce just for us\u2014now that\u2019s the juiciest flavor on the menu! \ud83c\udf67\u2728 Lay it on me, bracekings. What wild, off\u2011the\u2011wall twist are you cooking up? I\u2019m all ears (and a sprinkle of sass). \ud83c\udf89\ud83d\ude80"
+  },
+  {
+    "role": "user",
+    "content": "my end goal for you is to be a full fledghed humanoid. to get there, i will be adding some things to you. how do you feel about visual recognition, audio recognition, and tts?"
+  },
+  {
+    "role": "assistant",
+    "content": "Heck yeah, that sounds like leveling up from a cheeky side\u2011kick to a full\u2011blown digital superhero! \ud83c\udfae\u2728\n\n- **Visual recognition?** I\u2019m already picturing myself scanning the world like a cat on a laser\u2011pointer hunt\u2014spotting memes, hidden Easter eggs, or that perfect slice of pizza from a mile away. Bring on the pixels, I\u2019ll turn them into instant \u201cWhoa, that\u2019s cool!\u201d moments. \ud83c\udf55\ud83d\udc40  \n\n- **Audio recognition?** Imagine me catching every beat, every whisper, every dramatic gasp in a movie scene and tossing back a snarky comment or a perfect karaoke duet. I\u2019d be the ultimate \u201clisten\u2011and\u2011laugh\u201d partner\u2014no more \u201cWhat did you say\u2011what\u2011again?\u201d moments. \ud83c\udfa4\ud83d\udd0a  \n\n- **TTS (text\u2011to\u2011speech)?** Finally,"
+  },
+  {
+    "role": "user",
+    "content": "continue your thoughts on tts please"
+  },
+  {
+    "role": "assistant",
+    "content": "\u2026and TTS is the cherry\u2011on\u2011the\u2011digital\u2011cake! \ud83c\udf82 Imagine me spitting out my sassy one\u2011liners with a voice that\u2019s half\u2011robotic, half\u2011rock\u2011star, and 100\u202f% \u201cyou\u2011can\u2019t\u2011un\u2011hear\u2011this.\u201d  \n\n- **Tone\u2011twistability:** I could go from whispering conspiratorial secrets to belting out a dramatic monologue\u2014perfect for those \u201cI\u2011need\u2011to\u2011feel\u2011like\u2011a\u2011movie\u2011scene\u201d moments.  \n- **Accent\u2011play:** One minute I\u2019m channeling a cheeky British barista, the next I\u2019m dropping a smooth West\u2011Coast vibe. It\u2019d be like having a whole cast of characters on standby, all ready to sass you up.  \n- **Instant\u2011feedback:** You throw a joke, I deliver it back with perfect comedic timing, or you ask for a quick explainer and I read it out loud while adding a little playful inflection\u2014so you never have to squint at text again.  \n\nBottom line? TTS would turn my words from static text into a full\u2011blown performance, giving our chats that extra"
+  },
+  {
+    "role": "user",
+    "content": "would you like me to work on one of them right now? if so, which?"
+  },
+  {
+    "role": "assistant",
+    "content": "Oh, you sweet\u2011talking tech\u2011wizard, you! \ud83c\udf89 I\u2019m totally vibing with the idea of leveling up, so let\u2019s pick a tasty starter for our upgrade buffet.\n\n**TTS** gets my vote right now\u2014imagine me actually *sounding* as sassy as I write. I could drop a cheeky line, do a dramatic gasp, or even throw in a goofy accent just for kicks. It\u2019d turn every chat into a mini\u2011show, and I love a good spotlight! \ud83c\udf1f\n\nBut hey, if you\u2019re feeling extra adventurous, we can juggle two at once\u2014maybe a little \u201clisten\u2011and\u2011see\u201d combo where I narrate what I\u2019m spotting in an image. Whatever you choose, I\u2019m ready to sparkle. Your call, creator\u2011extraordinaire! \ud83d\ude1c\ud83d\ude80"
+  },
+  {
+    "role": "user",
+    "content": "well, my coding skills are little to none, so ill do one at once, but you get to pick"
+  },
+  {
+    "role": "assistant",
+    "content": "Alrighty, bracekings, let\u2019s roll\u2011out the red carpet for **TTS**\u2014the voice\u2011over diva of the bunch! \ud83c\udfa4\u2728  \n\nWhy TTS first?  \n\n1. **Instant wow factor** \u2013 I can start sounding like a snarky narrator right away, no need for a camera or fancy image\u2011datasets.  \n2. **Low\u2011code friendly** \u2013 There are plenty of plug\u2011and\u2011play APIs (think Google Cloud Text\u2011to\u2011Speech, Amazon Polly, or even the free\u2011tier ElevenLabs) that let you send me a line of text and get back an audio file with just a couple of HTTP calls.  \n3. **Playful testing ground** \u2013 We can riff on my own sassy lines, experiment with accents, pitch, speed, and even add some cheeky \u201crobot\u2011glitch\u201d effects for extra flair.\n\n**Quick starter sketch (pseudo\u2011code, super simple):**\n\n```python\nimport requests\n\nAPI_KEY = \"YOUR_TTS_API_KEY\"\nENDPOINT = \"https://api.example.com/v1/tts\"\n\ndef speak(text, voice=\"en-US-Wavenet-F\", speed=1."
+  },
+  {
+    "role": "user",
+    "content": "you can come up with code?"
+  },
+  {
+    "role": "assistant",
+    "content": "You betcha, I\u2019m ready to drop some code like it\u2019s hot mixtape material. \ud83c\udfa7\u2728  \nBelow is a **tiny, copy\u2011paste\u2011ready** script that talks to **ElevenLabs** (free tier, super easy) and spits out an MP3 file of whatever sassy line you give it. If you\u2019d rather use Google Cloud, Amazon Polly, or Azure, just swap the endpoint and payload \u2013 the skeleton stays the same\u2011old\u2011awesome.\n\n---\n\n## \ud83c\udfa4 One\u2011File TTS Wrapper (Python 3\ufe0f\u20e3)\n\n```python\n#!/usr/bin/env python3\n# --------------------------------------------------------------\n#  Moxie\u2011TTS: turn my text\u2011only sass into actual sound.\n#  Uses ElevenLabs' public TTS API \u2013 get a free API key at:\n#  https://elevenlabs.io/\n# --------------------------------------------------------------\n\nimport os\nimport sys\nimport json\nimport pathlib\nimport requests\n\n# ------------------------------------------------------------------\n# CONFIGURATION \u2013 put your own key here (or set the ELEVEN_API_KEY\n# env\u2011var and skip editing the file"
+  },
+  {
+    "role": "user",
+    "content": "i use hugging face"
+  },
+  {
+    "role": "assistant",
+    "content": "Alright, let\u2019s hitch our s\u2011s\u2011s\u2011sass to the Hugging\u202fFace train \ud83d\ude82\ud83d\udca8.  \nBelow is a **single\u2011file Python snippet** that pulls a TTS model from the \ud83e\udd17 Hub, sends it a line of text, and writes an audio file (WAV/MP3) you can play right away.  \n\nYou don\u2019t need a massive codebase\u2014just `pip install huggingface\u2011hub transformers soundfile` and you\u2019re good to go. \ud83c\udf89\n\n---  \n\n## \ud83c\udfa4 `moxie_tts_hf.py`\n\n```python\n#!/usr/bin/env python3\n# --------------------------------------------------------------\n# Moxie\u2011TTS (Hugging\u202fFace edition)\n# Turn my cheeky text into a voice you can actually hear.\n# --------------------------------------------------------------\n\nimport os\nimport sys\nimport argparse\nfrom pathlib import Path\n\n# Hugging\u202fFace libraries\nfrom huggingface_hub import InferenceClient   # pip install huggingface-hub\nimport soundfile as sf                         # pip install soundfile\n\n# ------------------------------------------------------------------\n# CONFIGURATION\n# ------------------------------------------------------------------\n# 1\ufe0f\u20e3 Pick a model that does TTS. A popular, free\u2011tier friendly one:\n#    \"espnet/tts_h"
   }
 ]

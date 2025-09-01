@@ -3,7 +3,7 @@ import json
 from openai import OpenAI
 
 class AIchatbot:
-    def __init__(self, token=None, system_prompt="You are a helpful assistant."):
+    def __init__(self, token=None, system_prompt="You are a helpful assistant.", memory_file="chat_memory.json"):
         print("Initializing AI chatbot...")
         
         # Try to get token from parameter first, then environment
@@ -11,7 +11,8 @@ class AIchatbot:
         if not self.hf_token:
             raise ValueError("No Hugging Face token provided.")
         self.system_prompt = system_prompt
-        self.memory_file = "chat_memory.json"
+        self.memory_file = memory_file
+        self.sticky_file = "user_profile.json"
         # Initialize OpenAI client with Hugging Face router
         try:
             self.client = OpenAI(
@@ -21,6 +22,7 @@ class AIchatbot:
             
             # Initialize conversation history
             self.conversation_history = self.load_memory()
+            self.sticky_memory = self.load_sticky_memory()
             print("Moxie is awake and ready to cause trouble.")
             
         except Exception as e:
@@ -43,6 +45,15 @@ class AIchatbot:
         except Exception as e:
             print(f"Error saving memory: {str(e)}")
     
+    def load_sticky_memory(self):
+        if os.path.exists(self.sticky_file):
+            try:
+                with open(self.sticky_file, 'r') as f:
+                    return json.load(f)
+            except Exception as e:
+                print(f"Error loading sticky memory: {str(e)}")
+        return {}
+    
     def get_response(self, user_input):
         try:
              # Add user input to history
@@ -51,8 +62,13 @@ class AIchatbot:
             # Keep only the last 5 exchanges
             trimmed_history = self.conversation_history[-20:]
 
+            sticky_facts = ". ".join([f"{k}: {v}" for k, v in self.sticky_memory.items()])
+            memory_prefix = []
+            if sticky_facts:
+                memory_prefix.append({"role": "system", "content": f"User profile: {sticky_facts}"})
+
             # Build messages with system prompt
-            messages = [{"role": "system", "content": self.system_prompt}] + trimmed_history
+            messages = memory_prefix + [{"role": "system", "content": self.system_prompt}] + trimmed_history
 
             # Call the model
             completion = self.client.chat.completions.create(
@@ -106,6 +122,20 @@ def main():
                 print("\nMoxie: Memory wiped. Fresh start. Let’s cause some chaos.")
                 continue
             
+            # Allow user to update sticky memory with command like: !remember name=Alex
+            if user_input.lower().startswith("!remember "):
+                try:
+                    fact = user_input.replace("!remember ", "")
+                    key, value = fact.split("=", 1)
+                    key, value = key.strip(), value.strip()
+                    chatbot.sticky_memory[key] = value
+                    with open(chatbot.sticky_file, 'w') as f:
+                        json.dump(chatbot.sticky_memory, f, indent=2)
+                    print(f"\nMoxie: Ugh, fine. I’ll remember that: {key} = {value}")
+                except:
+                    print("\nMoxie: That wasn’t formatted right. Try: !remember name=Alex")
+                continue
+
             response = chatbot.get_response(user_input)
             print(f"\nMoxie: {response}")
 
