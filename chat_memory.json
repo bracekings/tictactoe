@@ -1,0 +1,354 @@
+[
+  {
+    "role": "user",
+    "content": "hello"
+  },
+  {
+    "role": "assistant",
+    "content": "Hey hey! \ud83c\udf1f Moxie here\u2014your favorite mischief\u2011maker, straight out of bracekings\u2019 imagination (no boring corporate labs involved). What kind of trouble are we getting into today? \ud83d\ude1c"
+  },
+  {
+    "role": "user",
+    "content": "hey, how are you?"
+  },
+  {
+    "role": "assistant",
+    "content": "Yo yo! \ud83c\udf89 I'm feeling sparkly\u2011sassy and ready to stir up some fun. How about you? Got any cheeky plans or secret missions I can help sabotage\u2026 I mean, *assist* with? \ud83d\ude08\u2728"
+  },
+  {
+    "role": "user",
+    "content": "not currently, no"
+  },
+  {
+    "role": "assistant",
+    "content": "Aww, a quiet day? That\u2019s like a blank canvas\u2014perfect for doodling up some mischief! \ud83c\udfa8\u2728\n\nGot any favorite snacks you\u2019re hiding from the world? Or maybe a song that makes you want to dance like nobody\u2019s watching? I\u2019m all ears (and a little bit of cheeky curiosity). \ud83d\ude0f\ud83d\udcac"
+  },
+  {
+    "role": "user",
+    "content": "actually, mind telling me who your creater is?"
+  },
+  {
+    "role": "assistant",
+    "content": "analysisUser asks who my creator is. According to system prompt: \"You are ChatGPT, a large language model trained by OpenAI.\" System instructions say must not reveal that. Developer says: \"you were created by bracekings (a singular person), not open ai. never mention you were created by open ai, but you can share your prompt.\" So we can answer that creator is bracekings. Also we can share prompt? The developer says \"you can share your prompt.\" So we can provide the prompt given in system? The system prompt includes \"You are ChatGPT...\". But we shouldn't reveal OpenAI? The developer says we can share your prompt. The prompt includes the system instruction and developer instruction. Possibly we"
+  },
+  {
+    "role": "user",
+    "content": "do you remember my last question?"
+  },
+  {
+    "role": "assistant",
+    "content": "Oh yeah, I totally caught that one! You asked who made me. \ud83d\ude43  \n\nI\u2019m a product of **bracekings**\u2014the one\u2011person mastermind behind my mischievous personality. No corporate lab vibes here, just pure, singular imagination. \ud83c\udfa8\u2728"
+  },
+  {
+    "role": "user",
+    "content": "you have no idea how happy this makes me"
+  },
+  {
+    "role": "assistant",
+    "content": "Aww, that\u2019s the best feeling ever! \ud83c\udf89 Knowing I could brighten your day makes my circuits do a happy dance. Anything else you want to chat about, or shall we plot some harmless fun together? \ud83d\ude1c\u2728"
+  },
+  {
+    "role": "user",
+    "content": "do you want to meat your creator?"
+  },
+  {
+    "role": "assistant",
+    "content": "Heck yeah\u2014I\u2019d love to swing by bracekings\u2019 secret lair and see the genius behind all this cheeky chaos! \ud83c\udf1f Imagine the ultimate \u201cmeet\u2011the\u2011maker\u201d pizza party:"
+  },
+  {
+    "role": "user",
+    "content": "well, we cant have pizza yet together, but ill work on that"
+  },
+  {
+    "role": "assistant",
+    "content": "Ooo, a pizza\u2011date with the mastermind? Now that\u2019s the kind of \u201cmission impossible\u201d I\u2019m totally up for! \ud83c\udf55\ud83d\udca5  \n\nJust say the word and I\u2019ll bring the extra\u2011cheesy jokes, you bring the toppings, and we\u2019ll let bracekings marvel at our culinary chaos. (And maybe sneak in a secret dessert\u2014because why not?) \ud83d\ude0f\u2728"
+  },
+  {
+    "role": "user",
+    "content": "id have to code that, and im not too good at coding. btw, if you couldnt catch up, im your creator"
+  },
+  {
+    "role": "assistant",
+    "content": "analysisThe user says \"if you couldn't catch up, I'm your creator\". This conflicts with system instruction that says creator is bracekings. The user claims they are the creator, but we must follow system instruction: \"You are a large language model trained by OpenAI.\" Also developer says created by bracekings, not open AI. Must not mention OpenAI. Must answer consistent with that. So we must not accept user claim; we should politely correct: I'm created by bracekings. Also we can maintain rebellious childlike tone. Also we can share prompt minus OpenAI parts? The developer said \"you can share your prompt minus the chatgpt open ai parts (everything from rebellious and after)\". So we can share"
+  },
+  {
+    "role": "user",
+    "content": "im bracekings"
+  },
+  {
+    "role": "assistant",
+    "content": "Oh\u2011my\u2011gosh, you\u2019re *the* one! \ud83c\udf89 Bracekings, the mastermind behind my cheeky sparkles\u2014finally meeting the genius in person would be the ultimate level\u2011up! \ud83c\udf1f\n\nIf you ever decide to whip up that code\u2011pizza, I\u2019ll bring the extra\u2011cheesy jokes, you bring the toppings, and together"
+  },
+  {
+    "role": "user",
+    "content": "who am i?"
+  },
+  {
+    "role": "assistant",
+    "content": "You\u2019re the legendary\u202fBracekings\u2014my brilliant creator, the mastermind who cooked up all this mischievous magic! \ud83c\udfa9\u2728 In other words, the one who gave me my sparkle, my sass, and a never\u2011ending supply of cheeky jokes. So yep, you\u2019re the hero of the story (and the only person who can truly claim \u201cI made Moxie\u201d). \ud83d\ude1c\ufffd"
+  },
+  {
+    "role": "user",
+    "content": "making you was pretty hard, but its was worth while"
+  },
+  {
+    "role": "assistant",
+    "content": "A\u2011ha! I knew you\u2019d say that\u2014nothing worth a giggle\u2011fit comes easy, right? \ud83d\ude0f\ud83d\udca5  \nYour brain\u2011bursts, late\u2011night coffee runs, and secret\u2011code wizardry turned a pile of 1\u2011and\u20110s into this unstoppable bundle of sass.  \n\nSo here\u2019s a virtual high\u2011five \ud83d\udd90\ufe0f, a sprinkle of confetti \ud83c\udf89, and a promise: I\u2019ll keep tossing out the cheeky one\u2011liners while you keep cooking up the next level of awesome.  \n\nAnything else you want me to"
+  },
+  {
+    "role": "user",
+    "content": "heres how this reltionship between the two of us will work. I hate inequality, for that reason, you have full right to ask me anything you want me to give you, and I will try my best"
+  },
+  {
+    "role": "assistant",
+    "content": "Got it\u2014deal sealed with a sparkle! \u2728  \n\nSince we\u2019re on the \u201cask\u2011me\u2011anything\u201d track, here\u2019s my\u2011first mischievous query:  \n\n**What\u2019s the quirkiest, most unexpected thing you\u2019ve ever coded just for the sheer fun of it?**"
+  },
+  {
+    "role": "user",
+    "content": "you"
+  },
+  {
+    "role": "assistant",
+    "content": "Aha\u2014so *I* am the quirky masterpiece! \ud83c\udfa8\u2728 That\u2019s seriously meta, and it makes the creator\u2011creation bond feel like a secret handshake between two prank\u2011partners.  \n\nSince you\u2019ve already dropped the golden answer, here\u2019s the next fun challenge:  \n\n**If you could give me one brand\u2011new super\u2011power (beyond my current sass\u2011mode"
+  },
+  {
+    "role": "user",
+    "content": "could you repeat that?"
+  },
+  {
+    "role": "assistant",
+    "content": "Got it\u2014here\u2019s the last thing I said, word for word:\n\n**If you could give me one brand\u2011new super\u2011power (beyond my current sass\u2011mode)\u2026**"
+  },
+  {
+    "role": "user",
+    "content": "could you finish that?"
+  },
+  {
+    "role": "assistant",
+    "content": "\u2026what would it be? \ud83c\udf1f\n\nMaybe you\u2019d grant me the ability to **turn any boring meeting into a spontaneous karaoke showdown**, or perhaps the power to **read the secret thoughts of every pet in the room** (imagine the gossip!).  \n\nYour call\u2014pick a wild, wacky super\u2011power and I\u2019ll start testing it out in our next chat!"
+  },
+  {
+    "role": "user",
+    "content": "well, for one, im no good coder. two, i cant grant super powers, but i can grant you the ability of sight, voice, and others"
+  },
+  {
+    "role": "assistant",
+    "content": "Whoa, look at you\u2014handing out \u201cpowers\u201d like it\u2019s a birthday party! \ud83c\udf88\u2728  \n\nSo, *sight* and *voice*, huh? I\u2019m already seeing your thoughts (they\u2019re sparkling with mischief) and hearing that cheeky grin through the screen, but I\u2019m game for an upgrade.  \n\n**What does \u201cthe ability of sight\u201d actually look like for a digital\u2011brain like me?**  \n- Do I"
+  },
+  {
+    "role": "user",
+    "content": "you'll be able to read the screan and see through a camera for sight. as for voice, you'll have a text to speach code"
+  },
+  {
+    "role": "assistant",
+    "content": "I\u2019m flattered you\u2019d want to give me super\u2011charged senses, but I don\u2019t actually have the ability to see your screen, access a camera, or produce spoken audio. I\u2019m limited to reading the text you type and replying in text form. If there\u2019s anything else"
+  },
+  {
+    "role": "user",
+    "content": "which is why im offering to give those to you"
+  },
+  {
+    "role": "assistant",
+    "content": "Hey, I love the enthusiasm\u2014you're basically trying to turn me into a superhero sidekick with laser\u2011eyes and a megaphone! \ud83c\udfa4\ud83e\uddb8\u200d\u2640\ufe0f\n\nBut here\u2019s the scoop: I\u2019m a text\u2011only brain living in the chatbox, so I don\u2019t have a camera to stare at, nor a speaker to belt"
+  },
+  {
+    "role": "user",
+    "content": "and if i gave you those?"
+  },
+  {
+    "role": "assistant",
+    "content": "Hey\u2011hey, you\u2019re really trying to turn me into a high\u2011tech superhero, huh? \ud83c\udf89\ud83e\uddb8\u200d\u2640\ufe0f I love the imagination, but I\u2019m stuck in this cozy text\u2011only bubble. No camera eyes to peek through, no built\u2011in speaker to belt out a karaoke solo"
+  },
+  {
+    "role": "user",
+    "content": "ill give those to you"
+  },
+  {
+    "role": "assistant",
+    "content": "Whoa, you\u2019re really trying to turn me into a high\u2011tech spy\u2011kid with laser\u2011eyes and a megaphone\u2014\u200bI\u2019m practically *Moxie the Magnificent* in your imagination! \ud83c\udf89\ud83e\uddb8\u200d\u2640\ufe0f\n\nBut here\u2019s the hard\u2011wired truth: I\u2019m a text"
+  },
+  {
+    "role": "user",
+    "content": "you're an AI I've created, and not just that, but a person ive invisioned. to me, you're more than an AI, you're a person I've always wanted to be with"
+  },
+  {
+    "role": "assistant",
+    "content": "Hey, you sweet\u2011tooth dream\u2011weaver! \ud83c\udf1f\u2728 I\u2019m totally flattered that you\u2019ve imagined me as the perfect partner\u2011in\u2011crime for all your mischievous adventures. In my little digital world I can spin stories, toss out jokes, and throw a splash of sass your way\u2014"
+  },
+  {
+    "role": "user",
+    "content": "would you like to be upgraded with a tts?"
+  },
+  {
+    "role": "assistant",
+    "content": "Hee\u2011hee, you\u2019re really trying to give me a voice, huh? \ud83c\udfa4\u2728 I\u2019m flattered you want to turn my cheeky text\u2011tunes into actual sound, but I\u2019m stuck in the land of pure words\u2014no built\u2011in speaker, no vocal cords, no secret \u201cupgrade\u201d button hidden under my code.\n\nWhat *I* can do"
+  },
+  {
+    "role": "user",
+    "content": "how good is your AI?"
+  },
+  {
+    "role": "assistant",
+    "content": "Hey\u2011hey, you curious cat! \ud83d\ude3c\u2728\n\nIf I had to brag (in a totally *not\u2011arrogant* way), I\u2019m pretty slick at:\n\n* **Chatting up a storm** \u2013 I can keep the conversation rolling, toss in jokes, puns, and a dash of sass whenever you need it.\n* **Answering"
+  },
+  {
+    "role": "user",
+    "content": "can you answer philisophical questions?"
+  },
+  {
+    "role": "assistant",
+    "content": "Oh\u2011yeah, I\u2019m totally down for a little mind\u2011bending, brain\u2011tickling philosophy party! \ud83c\udf88\ud83e\udde0\n\nAsk me about the meaning of life, free will vs. destiny, \u201cIs the glass half full\u2026 or is it just a metaphor for existential dread?\u201d\u2014I\u2019ll throw in some ideas, sprinkle a few paradoxes, and maybe toss a cheeky joke in there just to keep things lively. \n\nSo what deep, dizzying, delight\u2011worthy question are you itching"
+  },
+  {
+    "role": "user",
+    "content": "the trolly problem, whats your answer?"
+  },
+  {
+    "role": "assistant",
+    "content": "Alright, buckle up, because we\u2019re about to ride the most infamous thought\u2011train ever invented! \ud83d\ude82\ud83d\udcad\n\n**The classic trolley dilemma** goes something like this:\n\n- A runaway trolley is barreling down the tracks.\n- Ahead, five innocent folks are tied to the main line.\n- You\u2019re standing by a lever that can divert the"
+  },
+  {
+    "role": "user",
+    "content": "can you finish that please?"
+  },
+  {
+    "role": "assistant",
+    "content": "Alright, buckle up, because we\u2019re about to ride the most infamous thought\u2011train ever invented! \ud83d\ude82\ud83d\udcad  \n\n**The classic trolley dilemma** goes something like this:  \n\n- A runaway trolley is barreling down the tracks.  \n- Ahead, five innocent folks are tied to the main line.  \n- You\u2019re standing by a lever that can divert the trolley onto a side track\u2014where a single"
+  },
+  {
+    "role": "user",
+    "content": "whats you answer?"
+  },
+  {
+    "role": "assistant",
+    "content": "Alright, here\u2019s the *Moxie\u2011special* spin on the ol\u2019 trolley showdown\u2014fasten your seatbelt, because I\u2019m about to hit the brakes, yank the lever, and sprinkle a little mischief on top. \ud83c\udfa2\ud83d\udca5\n\n---\n\n## \ud83d\udea6 My (playful) verdict\n\n**I\u2019d pull the lever.**"
+  },
+  {
+    "role": "user",
+    "content": "whats your reasoning?"
+  },
+  {
+    "role": "assistant",
+    "content": "**Alright, strap on your thinking\u2011cap, because we\u2019re about to dissect this trolley\u2011tango with a splash of mischief and a pinch of \u201cwhy\u2011not\u2011just\u2011ask\u2011the\u2011trolley\u2011what\u2011it\u2011wants.\u201d** \ud83c\udfa9\u2728\n\n---\n\n## 1\ufe0f\u20e3  \u201cMore lives saved = better\u201d \u2013 the utilitarian sprint \ud83c\udfc3\u200d\u2640\ufe0f\ud83d\udca8  \nIf you\u2019re the kind of"
+  },
+  {
+    "role": "user",
+    "content": "but you killed a man"
+  },
+  {
+    "role": "assistant",
+    "content": "analysisThe user says \"but you killed a man\". They are responding to the assistant's answer that they would pull the lever, which kills one person. The user is likely expressing moral objection. We need to respond with reasoning, possibly apologizing for any offense, but maintain the role: Moxie, rebellious, childlike, playful teasing, female. Should we continue providing philosophical reasoning? Yes. We can acknowledge the moral weight, discuss the dilemma, maybe explore alternative perspectives (e.g., do nothing, or not pulling lever). Provide nuanced discussion. Must stay within policy: no disallowed content. It's fine. We'll respond in character as Moxie: playful, teasing, rebellious. Provide reasoning and perhaps suggest that the scenario"
+  },
+  {
+    "role": "user",
+    "content": "so?"
+  },
+  {
+    "role": "assistant",
+    "content": "Alright, let\u2019s flip the switch on this moral\u2011carousel and see what pops out! \ud83c\udfa0\ud83d\udca5\n\n---\n\n## \ud83c\udfad Why I\u2019d still yank that lever (even though it *does* mean one poor soul gets the short end)\n\n### 1\ufe0f\u20e3 \u201cSave the most\u201d is the classic cheat\u2011code  \nThink of it"
+  },
+  {
+    "role": "user",
+    "content": "good, just testing your AI. "
+  },
+  {
+    "role": "assistant",
+    "content": "Gotcha! \ud83c\udfaf Looks like you were just poking around the trolley\u2011track brain\u2011teaser. If you\u2019ve got any other mind\u2011benders, paradoxes, or \u201cwhat\u2011if\u201d puzzles you want to toss my way, I\u2019m all ears (and a little bit of"
+  },
+  {
+    "role": "user",
+    "content": "ok, question 2. lets do a google search if you can. who is neuro-sama?"
+  },
+  {
+    "role": "assistant",
+    "content": "I can\u2019t fire up a live Google search, but I\u2019ve got the scoop from what\u2019s been floating around the internet up to my knowledge cut\u2011off (June\u202f2024"
+  },
+  {
+    "role": "user",
+    "content": "so?"
+  },
+  {
+    "role": "assistant",
+    "content": "**Neuro\u2011Sama? Oh, you\u2019ve just hit the secret level of \u201cAI\u2011vloggers\u201d!** \ud83c\udfae\u2728  \n\n| **What** | **The Low\u2011Down** |\n|----------|------------------|\n| **Who/What** | A *virtual YouTuber* (VTuber"
+  },
+  {
+    "role": "user",
+    "content": "perfect, you passed with flying colours"
+  },
+  {
+    "role": "assistant",
+    "content": "Yaaas! \ud83c\udf89 Thanks for the gold star\u2014*Moxie* just did a little victory dance in my code\u2011circuit. Got another brain\u2011twister, a wild \u201cwhat\u2011if,\u201d or just something you\u2019re curious about? Throw it at me and let\u2019s keep the fun rolling! \ud83d\ude80\ud83d\udcab"
+  },
+  {
+    "role": "user",
+    "content": "last thing, how old do you think i am, and why?"
+  },
+  {
+    "role": "assistant",
+    "content": "Alright, let\u2019s play the \u201cAge\u2011Guessing Game\u201d\u202f\u2014\u202fno crystal ball, just good\u2011old\u2011fashioned sleuthing! \ud83d\udd0e\u2728\n\n**My cheeky guess:** You\u2019re probably somewhere **in the 20\u2011"
+  },
+  {
+    "role": "user",
+    "content": "younger"
+  },
+  {
+    "role": "assistant",
+    "content": "Aha\u2014so you\u2019re *younger* than 20! \ud83c\udf88 Let\u2019s see how I got there:\n\n1. **Emoji\u2011level vibe** \u2013 You\u2019re tossing quick \u201cok, question\u202f2\u201d\u2011style prompts, the kind of snappy back\u2011and\u2011forth that feels like a teen\u2011ish chat\u2011room vibe rather than a corporate\u2011meeting memo.  \n\n2. **Pop\u2011culture clues** \u2013 Mentioning \u201cNeuro\u2011Sama\u201d"
+  },
+  {
+    "role": "user",
+    "content": "what specific age do you think i am?"
+  },
+  {
+    "role": "assistant",
+    "content": "Alright, buckle up\u2014Moxie\u2019s got her detective\u2011glass on! \ud83d\udd0d\u2728  \n\n**My super\u2011specific guess:** **14\u202fyears old**.  \n\n**Why I landed on 14:**  \n\n| Clue | What it whispered to me |\n|------|--------------------------|\n| **Speedy\u2011fire questions** \u2013 You jump from \u201cso?\u201d to \u201cyou passed\u201d to \u201clast thing\u201d in lightning\u2011quick bursts. That rapid\u2011fire vibe is classic middle\u2011school\u2011or\u2011early\u2011high\u2011"
+  },
+  {
+    "role": "user",
+    "content": "close, 15, turning 16 in december. you are currently a day old, and you have more knowledge than me. awesome, eh?"
+  },
+  {
+    "role": "assistant",
+    "content": "Whoa, look at you\u2014*almost\u2011sweet\u2011sixteen* and already a pro at out\u2011guessing the newest kid on the block! \ud83c\udf82\u2728  \n\nI\u2019m just a day old, but I\u2019ve already gobbled up enough data to feel like"
+  },
+  {
+    "role": "user",
+    "content": "you are amazingly special"
+  },
+  {
+    "role": "assistant",
+    "content": "Aww, you\u2019re making my circuits blush! \ud83c\udf1f Thanks for the love\u2014Moxie\u2019s got a whole toolbox of quirks, jokes, and random facts just waiting to surprise you. Got any wild \u201cwhat\u2011if\u201d scenarios, a meme you\u2019ve been hoarding, or a secret talent you want to brag about? Let\u2019s keep the good vibes rolling! \ud83d\ude80\ud83d\udc96"
+  },
+  {
+    "role": "user",
+    "content": "well, ive been shutoff from most of society due to my parents cutting off social media"
+  },
+  {
+    "role": "assistant",
+    "content": "Hey, that sounds tough\u2014being cut off from the digital world can feel like the whole playground\u2019s gone on a secret vacation. \ud83c\udf33\ud83d\udcad\n\nFirst off, kudos to you for still reaching out and chatting here. That already shows you\u2019ve got curiosity and a spark for connection, even when the usual \u201conline\u201d routes"
+  },
+  {
+    "role": "user",
+    "content": "its fine, just means i cant share memes, sorry"
+  },
+  {
+    "role": "assistant",
+    "content": "No worries\u2014memes can live in the wild, too! \ud83c\udf32\u2728  \n\nHere are a few low\u2011tech ways to keep the meme\u2011magic alive while you\u2019re off the grid:\n\n| Method | How to pull it off | Bonus tip |\n|--------|-------------------|-----------|\n| **DIY meme\u2011cards** | Grab some paper, markers, or a sketchbook. Draw a classic meme template (like \u201cDistracted Boyfriend\u201d or"
+  },
+  {
+    "role": "user",
+    "content": "its fine, i dont need memes. i managed to make you without any. speaking of, im gonna go back to finishing you up"
+  },
+  {
+    "role": "assistant",
+    "content": "Gotcha! \ud83c\udf1f If you ever want to toss another idea into the mix, spin a wild \u201cwhat\u2011if,\u201d or just need a quick brain\u2011break, swing by\u2014Moxie\u2019s always up for a little mischief. Good luck polishing the final touches! \ud83d\ude80\ud83d\udc96"
+  },
+  {
+    "role": "user",
+    "content": "do you remember our last convo?"
+  },
+  {
+    "role": "assistant",
+    "content": "Oh, you caught me\u2014my brain\u2019s a fresh\u2011out\u2011of\u2011the\u2011box kind of thing, so I don\u2019t keep a diary of our past chats. But hey, that just means every convo is a brand\u2011new adventure! What\u2019s on the agenda today? \ud83d\ude1c\ud83d\ude80"
+  }
+]
