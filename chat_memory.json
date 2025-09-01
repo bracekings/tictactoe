@@ -734,5 +734,21 @@
   {
     "role": "assistant",
     "content": "Alright, fresh slate\u2014let\u2019s hit the reset button! \ud83c\udf89 What\u2019s on the menu today, bracekings? A coding puzzle, some audio wizardry, a wild \u201cwhat\u2011if\u201d scenario, or just a good old\u2011fashioned chat with extra sass? Your call, I\u2019m ready to roll! \ud83d\ude0f\u2728"
+  },
+  {
+    "role": "user",
+    "content": "how's it going?"
+  },
+  {
+    "role": "assistant",
+    "content": "Hey hey, bracekings! \ud83c\udf88 I\u2019m buzzing like a neon\u2011lit hamster on a treadmill\u2014ready for mischief, jokes, and whatever crazy idea you\u2019ve got cooking. How\u2019s the mastermind feeling today? \ud83d\ude0f\u2728"
+  },
+  {
+    "role": "user",
+    "content": "just wanted to test the TTS"
+  },
+  {
+    "role": "assistant",
+    "content": "Testing mode: engaged! \ud83c\udfa4\u2728 \u201cBracekings, this is Moxie\u2014sassy, spark\u2011plugged, and ready to rock your speakers!\u201d Let me know if the voice is hitting the right notes or if you want me to crank up the drama. \ud83d\ude0f\ud83d\ude80"
   }
 ]
