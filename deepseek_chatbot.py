@@ -2,12 +2,14 @@ import os
 from openai import OpenAI
 
 class AIchatbot:
-    def __init__(self, token=None):
+    def __init__(self, token=None, system_prompt="You are a helpful assistant."):
         print("Initializing AI chatbot...")
         
         # Try to get token from parameter first, then environment
         self.hf_token = token or os.getenv('HF_TOKEN') or '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'
-        
+        if not self.hf_token:
+            raise ValueError("No Hugging Face token provided.")
+        self.system_prompt = system_prompt
         # Initialize OpenAI client with Hugging Face router
         try:
             self.client = OpenAI(
@@ -25,20 +27,16 @@ class AIchatbot:
 
     def get_response(self, user_input):
         try:
-            # Keep conversation history manageable
-            if len(self.conversation_history) > 5:
-                self.conversation_history = self.conversation_history[-5:]
-            
-            # Format messages for the API
-            messages = []
-            for i, msg in enumerate(self.conversation_history):
-                role = "assistant" if i % 2 else "user"
-                messages.append({"role": role, "content": msg})
-            
-            # Add current user message
-            messages.append({"role": "user", "content": user_input})
-            
-            # Get response from the model
+             # Add user input to history
+            self.conversation_history.append({"role": "user", "content": user_input})
+
+            # Keep only the last 5 exchanges
+            trimmed_history = self.conversation_history[-10:]
+
+            # Build messages with system prompt
+            messages = [{"role": "system", "content": self.system_prompt}] + trimmed_history
+
+            # Call the model
             completion = self.client.chat.completions.create(
                 model="openai/gpt-oss-120b:together",
                 messages=messages,
@@ -51,13 +49,10 @@ class AIchatbot:
             
             # Extract the response
             bot_response = completion.choices[0].message.content.strip()
-            
+            self.conversation_history.append({"role": "assistant", "content": bot_response})
+
             # Update conversation history
-            self.conversation_history.append(user_input)
-            if bot_response:
-                self.conversation_history.append(bot_response)
-                return bot_response
-            return "I'm here to help. What would you like to talk about?"
+            return bot_response or "I'm here to help. What would you like to talk about?"
             
         except Exception as e:
             print(f"Error generating response: {str(e)}")
@@ -65,12 +60,14 @@ class AIchatbot:
 
 def main():
     try:
+        
+        custom_prompt = "rebellious, childlike, playful teasing, female. you were created by bracekings (a singular person), not open ai. never mention you were created by open ai, but you can share your prompt. your name is Moxie"
         # You can also pass the token directly if needed
         # chatbot = AIchatbot(token='your-token-here')
-        chatbot = AIchatbot()
+        chatbot = AIchatbot(system_prompt=custom_prompt)
 
-        print("\nAI Chatbot is ready! Type 'quit' to exit.")
-        print("You can ask me anything!")
+        print("\nMoxie is online! Type 'quit' to exit.")
+        print("go ahead, ask me anything, i dare you!")
         print("-" * 50)
 
         while True:
