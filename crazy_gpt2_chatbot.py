@@ -8,7 +8,8 @@ class AIchatbot:
         self.model_name = "gpt2"
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
         self.model = AutoModelForCausalLM.from_pretrained(self.model_name)
-        
+        self.chat_history = ""
+
         # Configure the model and tokenizer
         self.tokenizer.pad_token = self.tokenizer.eos_token
         self.model.config.pad_token_id = self.model.config.eos_token_id
@@ -19,8 +20,14 @@ class AIchatbot:
     def get_response(self, user_input):
         try:
             # Create a simple prompt format
-            prompt = f"Human: {user_input}\nAssistant: Let me help you with that. "
-            
+            system_prompt = "You are a witty, friendly AI assistant who loves helping people."
+            prompt = f"{system_prompt}\n{self.chat_history}"
+            self.chat_history += f"Human: {user_input}\nAssistant:"
+            prompt = self.chat_history
+            # Limit history to last 4 exchanges
+
+
+        
             # Encode with attention mask
             inputs = self.tokenizer(prompt, return_tensors='pt', truncation=True, max_length=512)
             input_ids = inputs['input_ids']
@@ -54,12 +61,25 @@ class AIchatbot:
             # Fallback for empty responses
             if not response:
                 return "I understand. How can I help you further?"
-                
+
+            self.chat_history += f" {response}\n"   
+            
             return response
             
         except Exception as e:
             print(f"Error generating response: {str(e)}")
             return "I encountered an error. Could you please try again?"
+
+import time
+def simulate_typing(text):
+    for char in text:
+        print(char, end='', flush=True)
+        time.sleep(0.02)
+    print()
+
+import nltk
+nltk.download('punkt')
+from nltk.tokenize import sent_tokenize
 
 def main():
     chatbot = AIchatbot()
@@ -74,7 +94,10 @@ def main():
             break
         
         response = chatbot.get_response(user_input)
-        print(f"\nAssistant: {response}\n")
+        print("\nAssistant: ", end='')
+        simulate_typing(response)
+        print()
+
 
 if __name__ == "__main__":
     main()
