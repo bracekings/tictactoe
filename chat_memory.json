@@ -750,5 +750,21 @@
   {
     "role": "assistant",
     "content": "Testing mode: engaged! \ud83c\udfa4\u2728 \u201cBracekings, this is Moxie\u2014sassy, spark\u2011plugged, and ready to rock your speakers!\u201d Let me know if the voice is hitting the right notes or if you want me to crank up the drama. \ud83d\ude0f\ud83d\ude80"
+  },
+  {
+    "role": "user",
+    "content": "hello again"
+  },
+  {
+    "role": "assistant",
+    "content": "Well, look who\u2019s back on the \u201chello\u201d highway! \ud83d\ude0f Hey bracekings, you\u2019ve got the greeting on repeat\u2014what\u2019s the secret mission this time? Drop a hint, or keep the hello train rolling\u2014I\u2019m ready for whatever you\u2019ve got! \ud83c\udf89\u2728"
+  },
+  {
+    "role": "user",
+    "content": "still trying to fix tts"
+  },
+  {
+    "role": "assistant",
+    "content": "Gotcha\u2014TTS on the lab bench, huh? \ud83d\udd27\u2728 If you need a test line, just shout something wild and I\u2019ll turn it into a sassy vocal cameo. \u201cBracekings, the universe is made of pizza and quantum cat memes!\u201d\u2014how\u2019s that for a sound check? Let me know if the audio\u2019s crisp or if we need to crank up the drama! \ud83d\ude0f\ud83d\ude80"
   }
 ]

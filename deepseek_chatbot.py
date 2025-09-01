@@ -39,8 +39,9 @@ class AIchatbot:
         self.conversation_history = self.load_memory()
         self.sticky_memory = self.load_sticky_memory()
 
-        # TTS configuration (we will use Edge TTS first, then pyttsx3)
+        # TTS configuration
         self.audio_output_wav = "moxie_response.wav"
+        self.audio_output_mp3 = "moxie_response.mp3"
         self.voice_clone_path = None  # set by user via voice command
         self.speech_enabled = True  # 🔊 default: Moxie talks
 
@@ -81,52 +82,7 @@ class AIchatbot:
         """Convert text to speech and play it."""
         if not self.speech_enabled:
             return  # 🔇 speech is muted
-        # Ensure previous file does not block playback
-        try:
-            if os.path.exists(self.audio_output_wav):
-                os.remove(self.audio_output_wav)
-        except Exception:
-            pass
-        # Fallback 1: Edge TTS (online, reliable)
-        if edge_tts is not None:
-            try:
-                async def _synthesize_edge(text, outfile, voice):
-                    communicate = edge_tts.Communicate(
-                        text=text,
-                        voice=voice,
-                        output_format=os.getenv("EDGE_TTS_FORMAT", "riff-24khz-16bit-mono-pcm"),
-                    )
-                    await communicate.save(outfile)
-                voice = os.getenv("EDGE_TTS_VOICE", "en-US-JennyNeural")
-                loop = asyncio.new_event_loop()
-                try:
-                    asyncio.set_event_loop(loop)
-                    loop.run_until_complete(_synthesize_edge(text, self.audio_output_wav, voice))
-                finally:
-                    try:
-                        loop.close()
-                    except Exception:
-                        pass
-                    try:
-                        asyncio.set_event_loop(None)
-                    except Exception:
-                        pass
-                # Prefer Windows native playback for WAV
-                if os.name == "nt":
-                    try:
-                        import winsound
-                        winsound.PlaySound(self.audio_output_wav, winsound.SND_FILENAME)
-                    except Exception:
-                        pass
-                else:
-                    try:
-                        playsound(self.audio_output_wav)
-                    except Exception:
-                        pass
-                return
-            except Exception as e2:
-                print(f"[TTS Fallback Error] edge-tts failed: {e2}")
-        # Fallback 2: pyttsx3 (offline, Windows-friendly)
+        # Fallback 1: pyttsx3 (offline, Windows-friendly, most reliable on Windows)
         if self.tts_engine is not None or pyttsx3 is not None:
             try:
                 engine = self.tts_engine or pyttsx3.init()
@@ -144,6 +100,43 @@ class AIchatbot:
                 return
             except Exception as e2:
                 print(f"[TTS Fallback Error] pyttsx3 failed: {e2}")
+        # Fallback 2: Edge TTS (online)
+        if edge_tts is not None:
+            try:
+                # Clean up any prior file
+                try:
+                    if os.path.exists(self.audio_output_mp3):
+                        os.remove(self.audio_output_mp3)
+                except Exception:
+                    pass
+                async def _synthesize_edge(text, outfile, voice):
+                    communicate = edge_tts.Communicate(text=text, voice=voice)
+                    with open(outfile, "wb") as f:
+                        async for chunk in communicate.stream():
+                            if chunk["type"] == "audio":
+                                f.write(chunk["data"])
+                voice = os.getenv("EDGE_TTS_VOICE", "en-US-JennyNeural")
+                loop = asyncio.new_event_loop()
+                try:
+                    asyncio.set_event_loop(loop)
+                    loop.run_until_complete(_synthesize_edge(text, self.audio_output_mp3, voice))
+                finally:
+                    try:
+                        loop.close()
+                    except Exception:
+                        pass
+                    try:
+                        asyncio.set_event_loop(None)
+                    except Exception:
+                        pass
+                # Play MP3 via playsound (works cross-platform)
+                try:
+                    playsound(self.audio_output_mp3)
+                except Exception as e3:
+                    print(f"[TTS Fallback Error] MP3 playback failed: {e3}")
+                return
+            except Exception as e2:
+                print(f"[TTS Fallback Error] edge-tts failed: {e2}")
         # If no fallback available, remain silent
     
     def get_response(self, user_input):
