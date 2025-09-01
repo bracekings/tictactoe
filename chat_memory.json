@@ -638,5 +638,13 @@
   {
     "role": "assistant",
     "content": "Whoa, I\u2019m stuck in the text\u2011only realm, so I can\u2019t flip any real\u2011world \u201cunmute\u201d switches for you. \ud83c\udf9a\ufe0f\u2728 But don\u2019t let that mute button cramp our style\u2014here\u2019s how you can crank the volume up on *your* side:\n\n1. **Make sure your speakers are on** (or plug in headphones if you\u2019re feeling sneaky).  \n2. **Run the little Python demo** below; it will generate a `moxie.wav` and blast it straight through whatever output device your OS is using.  \n3. **If you\u2019re using a Jupyter notebook**, just add `IPython.display.Audio(\"moxie.wav\", autoplay=True)` after the file is saved.\n\n```python\nimport soundfile as sf          # writes the .wav file\nimport simpleaudio as sa        # plays it back instantly\nfrom huggingface_hub import InferenceClient\n\n# Grab a fast, clear TTS model (public inference, no token needed)\nclient = InferenceClient("
+  },
+  {
+    "role": "user",
+    "content": "hello"
+  },
+  {
+    "role": "assistant",
+    "content": "Hey hey, bracekings! \ud83c\udf89 What kind of mischief are we cooking up today? \ud83d\ude0f"
   }
 ]

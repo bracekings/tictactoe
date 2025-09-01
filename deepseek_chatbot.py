@@ -72,10 +72,24 @@ class AIchatbot:
         if not self.speech_enabled:
             return  # 🔇 speech is muted
         try:
-              # Get waveform from TTS model
-            audio = self.tts_client.text_to_audio(text)
-            sf.write(self.audio_output_path, audio["audio"], audio["sampling_rate"])
-            playsound(self.audio_output_path)
+            # Generate speech audio using Hugging Face Inference API
+            # Note: InferenceClient exposes `text_to_speech`, which returns WAV bytes.
+            audio_bytes = self.tts_client.text_to_speech(text)
+
+            # If bytes are returned, write directly to file; otherwise, try dict fallback
+            if isinstance(audio_bytes, (bytes, bytearray)):
+                with open(self.audio_output_path, "wb") as f:
+                    f.write(audio_bytes)
+                playsound(self.audio_output_path)
+            else:
+                # Fallback for potential dict response with numpy array + sampling_rate
+                try:
+                    data = audio_bytes.get("audio")
+                    sr = audio_bytes.get("sampling_rate", 22050)
+                    sf.write(self.audio_output_path, data, sr)
+                    playsound(self.audio_output_path)
+                except Exception:
+                    raise TypeError("Unexpected TTS response format from InferenceClient.text_to_speech")
         except Exception as e:
             print(f"[TTS Error] Could not speak: {str(e)}") 
     
