@@ -11,12 +11,15 @@ try:
 except:
     pyttsx3 = None
 
+FFMPEG_PATH = os.getenv("FFMPEG_PATH", "C:\\ffmpeg\\bin\\ffmpeg.exe")
+AudioSegment.converter = FFMPEG_PATH
+
 class AIchatbot:
-    def __init__(self, token=None, system_prompt="You are a helpful assistant.", memory_file="chat_memory.json", child_pitch=0.35):
+    def __init__(self, token=None, system_prompt="You act childish", memory_file="chat_memory.json", child_pitch=0.35):
         print("Initializing AI chatbot...")
         
         self.child_pitch = child_pitch
-        self.hf_token = token or os.getenv('HF_TOKEN')
+        self.hf_token = token or os.getenv('HF_TOKEN') 
         if not self.hf_token:
             raise ValueError("No Hugging Face token provided.")
         
@@ -35,7 +38,7 @@ class AIchatbot:
             raise
 
         # TTS setup with correct provider
-        self.tts_model = os.getenv("HF_TTS_MODEL", "espnet/tts_hifitts_fastspeech2_aishell3")
+        self.tts_model = os.getenv("HF_TTS_MODEL", "suno/bark")
         self.tts_client = InferenceClient(
             model=self.tts_model,
             provider="auto",  # auto-selects a working provider
@@ -71,19 +74,28 @@ class AIchatbot:
         return {}
 
     def speak_childlike(self, audio_bytes):
-        """Raise pitch to sound like a little girl and play."""
-        audio = AudioSegment.from_file(io.BytesIO(audio_bytes), format="wav")
-        new_rate = int(audio.frame_rate * (2.0 ** self.child_pitch))
-        high_pitch_audio = audio._spawn(audio.raw_data, overrides={'frame_rate': new_rate})
-        high_pitch_audio = high_pitch_audio.set_frame_rate(44100)
-        play(high_pitch_audio)
+      """Raise pitch and adjust tempo to sound like a playful young girl."""
+      audio = AudioSegment.from_file(io.BytesIO(audio_bytes), format="wav")
 
+    # Increase pitch and slightly speed up
+      pitch_factor = 1.6  # higher pitch
+      tempo_factor = 1.1  # slightly faster
+
+      new_rate = int(audio.frame_rate * pitch_factor)
+      high_pitch_audio = audio._spawn(audio.raw_data, overrides={'frame_rate': new_rate})
+      high_pitch_audio = high_pitch_audio.set_frame_rate(44100)
+
+    # Optional: reduce volume slightly for softer tone
+      high_pitch_audio = high_pitch_audio - 3
+
+      play(high_pitch_audio)
+    
     def speak(self, text):
         if not self.speech_enabled:
             return
         try:
-            # Generate speech via Hugging Face
-            audio_bytes = self.tts_client.text_to_speech(text)
+            styled_text = "[young girl] " + text
+            audio_bytes = self.tts_client.text_to_speech(styled_text)
             if isinstance(audio_bytes, dict) and "audio" in audio_bytes:
                 audio_bytes = audio_bytes["audio"]
             if isinstance(audio_bytes, (bytes, bytearray)):
@@ -92,9 +104,14 @@ class AIchatbot:
                 raise ValueError("No valid audio bytes returned from HF TTS")
         except Exception as e:
             print(f"[TTS Error] {e}")
-            # fallback to pyttsx3
             if pyttsx3:
                 engine = pyttsx3.init()
+                engine.setProperty('rate', 180)
+                voices = engine.getProperty('voices')
+                for voice in voices:
+                    if "female" in voice.name.lower():
+                        engine.setProperty('voice', voice.id)
+                        break
                 engine.say(text)
                 engine.runAndWait()
 
