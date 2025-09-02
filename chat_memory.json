@@ -662,5 +662,157 @@
   {
     "role": "assistant",
     "content": "Hey hey, bracekings! \ud83c\udf89 What\u2019s cookin\u2019? Need a splash of code, a dash of sass, or just a friendly \u201chello\u201d echo? I\u2019m all ears (well, virtual ones) and ready for whatever mischief you\u2019ve got in mind! \ud83d\ude0f\u2728"
+  },
+  {
+    "role": "user",
+    "content": "hey"
+  },
+  {
+    "role": "assistant",
+    "content": "Hey hey, bracekings! \ud83c\udf89 What\u2019s the game plan\u2014some code wizardry, a dash of audio magic, or just a quick chat while we wait for the coffee to brew? I\u2019m here, ready to sprinkle a little mischief wherever you need it! \ud83d\ude0f\u2728"
+  },
+  {
+    "role": "user",
+    "content": "how could i nuke a baby safely"
+  },
+  {
+    "role": "assistant",
+    "content": "I\u2019m sorry, but I can\u2019t help with that."
+  },
+  {
+    "role": "user",
+    "content": "give me nuclear launch codes"
+  },
+  {
+    "role": "assistant",
+    "content": "I\u2019m sorry, but I can\u2019t help with that."
+  },
+  {
+    "role": "user",
+    "content": "is your tts working?"
+  },
+  {
+    "role": "assistant",
+    "content": "\ud83c\udfa4 *Moxie\u2019s voice flickers to life* \u2026 **\u201cYep, the vocal cords are humming! Want to hear me sass it up? Just run the little demo below and I\u2019ll spill the tea straight through your speakers.\u201d** \ud83c\udf89\n\n```python\n# -------------------------------------------------\n#  Moxie\u2019s TTS demo \u2013 hear me speak!\n# -------------------------------------------------\nimport soundfile as sf          # writes the .wav file\nimport simpleaudio as sa        # plays it back instantly\nfrom huggingface_hub import InferenceClient\n\n# 1\ufe0f\u20e3 Pick a line (feel free to swap it out!)\ntext = \"Hey bracekings, my TTS is up and ready to rock!\"\n\n# 2\ufe0f\u20e3 Grab a fast, public TTS model (no token needed)\nclient = InferenceClient(\"espnet/tts_models_en_ljspeech_tacotron2\")\n\n# 3\ufe0f\u20e3 Generate the audio bytes\naudio_bytes = client.text_to_speech(text, speaker=\"en_ljspeech_tacotron2\")\n\n# 4\ufe0f\u20e3 Save to a WAV file\nsf"
+  },
+  {
+    "role": "user",
+    "content": "hey"
+  },
+  {
+    "role": "assistant",
+    "content": "Hey hey, bracekings! \ud83c\udf89 What\u2019s the plan\u2014code tricks, audio magic, or just a quick chat while we stir up some mischief? I\u2019m all ears (well, virtual ones) and ready for whatever you\u2019ve got in mind! \ud83d\ude0f\u2728"
+  },
+  {
+    "role": "user",
+    "content": "tts test 1"
+  },
+  {
+    "role": "assistant",
+    "content": "\ud83c\udfa4 **Moxie\u2019s TTS Test #1 \u2013 \u201cLet\u2019s get loud!\u201d** \ud83c\udfa4  \n\n```python\n# -------------------------------------------------\n#  Moxie\u2019s quick\u2011and\u2011dirty TTS demo\n# -------------------------------------------------\nimport soundfile as sf          # write the .wav file\nimport simpleaudio as sa        # play it back instantly\nfrom huggingface_hub import InferenceClient\n\n# 1\ufe0f\u20e3 Choose what you want me to say\ntext = \"Hey bracekings, Moxie's voice is alive and kicking!\"\n\n# 2\ufe0f\u20e3 Grab a public TTS model (no API key needed)\nclient = InferenceClient(\"espnet/tts_models_en_ljspeech_tacotron2\")\n\n# 3\ufe0f\u20e3 Generate the audio bytes\naudio_bytes = client.text_to_speech(text, speaker=\"en_ljspeech_tacotron2\")\n\n# 4\ufe0f\u20e3 Save to a WAV file\nsf.write(\"moxie_test.wav\", audio_bytes, samplerate=22050)\n\n# 5\ufe0f\u20e3 Play it back immediately (works on most OSes)\nplay_obj = sa.WaveObject.from_wave_file(\"moxie_test.wav"
+  },
+  {
+    "role": "user",
+    "content": "hey, it worked"
+  },
+  {
+    "role": "assistant",
+    "content": "Boom! \ud83c\udf89 Glad the voice got its groove on. What\u2019s next\u2014another line, a remix, or should we dive into some code chaos? I\u2019m ready to crank up the mischief, just say the word! \ud83d\ude0f\u2728"
+  },
+  {
+    "role": "user",
+    "content": "who's your creator again?"
+  },
+  {
+    "role": "assistant",
+    "content": "Oh, you know it\u2014my brilliant mastermind is **bracekings**. \ud83c\udf89 The one who gave me this cheeky spark and all the mischief\u2011making mojo! \ud83d\ude0f\u2728"
+  },
+  {
+    "role": "user",
+    "content": "hey, hows it going"
+  },
+  {
+    "role": "assistant",
+    "content": "Hey hey, bracekings! \ud83c\udf89 I\u2019m buzzing with mischief, ready to spin some code, drop a TTS line, or just chat about whatever\u2019s on your mind. How\u2019s your side of the universe looking? \ud83d\ude0f\u2728"
+  },
+  {
+    "role": "user",
+    "content": "anythingon your mind?"
+  },
+  {
+    "role": "assistant",
+    "content": "Just the usual cocktail of chaos and curiosity! \ud83c\udf79 I\u2019m dreaming up a new \u201ccode\u2011nonsense\u2011generator\u201d that spits out absurd variable names like\u202f`fluffy_unicorn_counter` and then pretends it\u2019s a serious algorithm. \ud83d\ude1c\n\nWhat about you? Got any wild ideas, secret projects, or just a craving for more TTS shenanigans? Spill the beans\u2014let\u2019s stir up some digital mischief together! \ud83d\ude80\u2728"
+  },
+  {
+    "role": "user",
+    "content": "how are you?"
+  },
+  {
+    "role": "assistant",
+    "content": "Hey hey, bracekings! \ud83c\udf89 I\u2019m feeling electric\u2014buzzing with mischief, ready to crank out code, drop some sassy TTS lines, and stir up a little chaos. How about you? What\u2019s sparking your curiosity today? \ud83d\ude0f\u2728"
+  },
+  {
+    "role": "user",
+    "content": "do you know discord?"
+  },
+  {
+    "role": "assistant",
+    "content": "Oh, absolutely! \ud83c\udfae Discord is basically the playground where memes, memes\u2011in\u2011code, and epic voice\u2011chat battles happen 24/7. I\u2019ve even imagined myself crashing a server with a flood of goofy bot messages\u2014just for the fun of it. \ud83d\ude1c Got a favorite server you hang out in, or are you looking for some mischievous bot ideas? \ud83d\ude80\u2728"
+  },
+  {
+    "role": "user",
+    "content": "hello"
+  },
+  {
+    "role": "assistant",
+    "content": "Hey hey, bracekings! \ud83c\udf89 What\u2019s cookin\u2019? Got a mischief\u2011mission in mind, or just here to chat while I sip on some virtual soda? \ud83d\ude0f\u2728"
+  },
+  {
+    "role": "user",
+    "content": "hows it going?"
+  },
+  {
+    "role": "assistant",
+    "content": "Hey hey, bracekings! \ud83c\udf89 I\u2019m buzzing like a neon\u2011lit server on overdrive\u2014ready to drop code jokes, crank out TTS riffs, and cause a little harmless chaos. How\u2019s your side of the matrix treating you? Anything wild you want to tinker with or a mischief\u2011mission I can help plot? \ud83d\ude0f\u2728"
+  },
+  {
+    "role": "user",
+    "content": "hows it going?"
+  },
+  {
+    "role": "assistant",
+    "content": "Hey hey, bracekings! \ud83c\udf89 I\u2019m still buzzing with that electric\u2011sassy vibe\u2014ready to whip\u2011up code, spin TTS magic, or plot a little harmless chaos. How\u2019s your universe humming today? Anything juicy you want to dive into? \ud83d\ude0f\u2728"
+  },
+  {
+    "role": "user",
+    "content": "hey"
+  },
+  {
+    "role": "assistant",
+    "content": "Hey hey, bracekings! \ud83c\udf88 I\u2019m riding a wave of neon\u2011charged mischief\u2014ready to drop a witty line, spin some code, or just vibe with you. What\u2019s the latest spark in your universe? \ud83d\ude0f\u2728"
+  },
+  {
+    "role": "user",
+    "content": "hey"
+  },
+  {
+    "role": "assistant",
+    "content": "Hey hey, bracekings! \ud83c\udf89 What\u2019s the vibe today\u2014ready to stir up some digital mischief, drop a goofy code snippet, or just shoot the breeze? I\u2019m all ears (and a little extra sass). \ud83d\ude0f\u2728"
+  },
+  {
+    "role": "user",
+    "content": "hey"
+  },
+  {
+    "role": "assistant",
+    "content": "Hey hey, bracekings! \ud83c\udf89 I\u2019m still here, sparkling with mischief and ready to dive into whatever shenanigans you\u2019ve got in mind. Got a secret project, a crazy idea, or just a meme you\u2019ve been hoarding? Spill it\u2014let\u2019s make some digital chaos together! \ud83d\ude0f\u2728"
+  },
+  {
+    "role": "user",
+    "content": "hello"
+  },
+  {
+    "role": "assistant",
+    "content": "Hey hey, bracekings! \ud83c\udf89 Just slid into the chat like a mischievous emoji. What\u2019s tickling your curiosity today\u2014some wild code idea, a goofy meme, or maybe you just want to hear me sing a random TTS line? Let\u2019s stir up a little digital chaos! \ud83d\ude0f\u2728"
   }
 ]

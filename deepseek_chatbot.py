@@ -2,56 +2,48 @@ import os
 import json
 from openai import OpenAI
 from huggingface_hub import InferenceClient
-from playsound import playsound
+from pydub import AudioSegment
+from pydub.playback import play
+import io
+
 try:
-    import pyttsx3  # fallback TTS (offline, Windows SAPI5)
-except Exception:
+    import pyttsx3
+except:
     pyttsx3 = None
-import soundfile as sf
 
 class AIchatbot:
-    def __init__(self, token=None, system_prompt="You are a helpful assistant.", memory_file="chat_memory.json"):
+    def __init__(self, token=None, system_prompt="You are a helpful assistant.", memory_file="chat_memory.json", child_pitch=0.35):
         print("Initializing AI chatbot...")
         
-        # Try to get token from parameter first, then environment
-        self.hf_token = token or os.getenv('HF_TOKEN') or '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'
+        self.child_pitch = child_pitch
+        self.hf_token = token or os.getenv('HF_TOKEN')
         if not self.hf_token:
             raise ValueError("No Hugging Face token provided.")
+        
         self.system_prompt = system_prompt
         self.memory_file = memory_file
         self.sticky_file = "user_profile.json"
-        # Initialize OpenAI client with Hugging Face router
+
+        # Initialize OpenAI client
         try:
-            self.client = OpenAI(
-                base_url="https://router.huggingface.co/v1",
-                api_key=self.hf_token
-            )
-            
-            # Initialize conversation history
+            self.client = OpenAI(base_url="https://router.huggingface.co/v1", api_key=self.hf_token)
             self.conversation_history = self.load_memory()
             self.sticky_memory = self.load_sticky_memory()
             print("Moxie is awake and ready to cause trouble.")
-            
         except Exception as e:
-            print(f"Error initializing chatbot: {str(e)}")
-            raise ValueError("Failed to initialize chatbot. Please check your Hugging Face token.")
-        
-        self.conversation_history = self.load_memory()
-        self.sticky_memory = self.load_sticky_memory()
-        print("moxie is awake and ready to cause trouble.")
+            print(f"Error initializing OpenAI client: {e}")
+            raise
 
-        # TTS configuration
-        self.tts_model = os.getenv("HF_TTS_MODEL", "facebook/mms-tts-eng")
-        # Initialize HF Inference client bound to a known serverless TTS model
+        # TTS setup with correct provider
+        self.tts_model = os.getenv("HF_TTS_MODEL", "espnet/tts_hifitts_fastspeech2_aishell3")
         self.tts_client = InferenceClient(
             model=self.tts_model,
-            provider="serverless",
+            provider="auto",  # auto-selects a working provider
             token=self.hf_token,
         )
-
         self.audio_output_path = "moxie_response.wav"
-        self.voice_clone_path = None #set by user via voice command
-        self.speech_enabled = True  # 🔊 default: Moxie talks
+        self.voice_clone_path = None
+        self.speech_enabled = True
 
     def load_memory(self):
         if os.path.exists(self.memory_file):
@@ -59,7 +51,7 @@ class AIchatbot:
                 with open(self.memory_file, 'r') as f:
                     return json.load(f)
             except Exception as e:
-                print(f"Error loading memory: {str(e)}")
+                print(f"Error loading memory: {e}")
         return []
 
     def save_memory(self):
@@ -67,92 +59,56 @@ class AIchatbot:
             with open(self.memory_file, 'w') as f:
                 json.dump(self.conversation_history, f, indent=2)
         except Exception as e:
-            print(f"Error saving memory: {str(e)}")
-    
+            print(f"Error saving memory: {e}")
+
     def load_sticky_memory(self):
         if os.path.exists(self.sticky_file):
             try:
                 with open(self.sticky_file, 'r') as f:
                     return json.load(f)
             except Exception as e:
-                print(f"Error loading sticky memory: {str(e)}")
+                print(f"Error loading sticky memory: {e}")
         return {}
-    
-    def speak(self, text):
-        """Convert text to speech and play it."""
-        if not self.speech_enabled:
-            return  # 🔇 speech is muted
-        try:
-            # Generate speech audio using Hugging Face Inference API
-            # Note: InferenceClient.text_to_speech returns WAV bytes when model is bound on client
-            audio_bytes = self.tts_client.text_to_speech(text)
 
-            # If bytes are returned, write directly to file; otherwise, try dict fallback
+    def speak_childlike(self, audio_bytes):
+        """Raise pitch to sound like a little girl and play."""
+        audio = AudioSegment.from_file(io.BytesIO(audio_bytes), format="wav")
+        new_rate = int(audio.frame_rate * (2.0 ** self.child_pitch))
+        high_pitch_audio = audio._spawn(audio.raw_data, overrides={'frame_rate': new_rate})
+        high_pitch_audio = high_pitch_audio.set_frame_rate(44100)
+        play(high_pitch_audio)
+
+    def speak(self, text):
+        if not self.speech_enabled:
+            return
+        try:
+            # Generate speech via Hugging Face
+            audio_bytes = self.tts_client.text_to_speech(text)
+            if isinstance(audio_bytes, dict) and "audio" in audio_bytes:
+                audio_bytes = audio_bytes["audio"]
             if isinstance(audio_bytes, (bytes, bytearray)):
-                with open(self.audio_output_path, "wb") as f:
-                    f.write(audio_bytes)
-                # Try default player first
-                try:
-                    playsound(self.audio_output_path)
-                except Exception:
-                    # Fallback: use Windows native sound if available
-                    if os.name == "nt":
-                        try:
-                            import winsound
-                            winsound.PlaySound(self.audio_output_path, winsound.SND_FILENAME)
-                        except Exception:
-                            raise
-                    else:
-                        raise
+                self.speak_childlike(audio_bytes)
             else:
-                # Fallback for potential dict response with numpy array + sampling_rate
-                try:
-                    data = audio_bytes.get("audio")
-                    sr = audio_bytes.get("sampling_rate", 22050)
-                    sf.write(self.audio_output_path, data, sr)
-                    try:
-                        playsound(self.audio_output_path)
-                    except Exception:
-                        if os.name == "nt":
-                            try:
-                                import winsound
-                                winsound.PlaySound(self.audio_output_path, winsound.SND_FILENAME)
-                            except Exception:
-                                raise
-                        else:
-                            raise
-                except Exception:
-                    raise TypeError("Unexpected TTS response format from InferenceClient.text_to_speech")
+                raise ValueError("No valid audio bytes returned from HF TTS")
         except Exception as e:
-            print(f"[TTS Error] Could not speak via HF: {str(e)}")
-            # Fallback to pyttsx3 (offline, Windows-friendly)
-            if pyttsx3 is not None:
-                try:
-                    engine = pyttsx3.init()
-                    engine.say(text)
-                    engine.runAndWait()
-                    return
-                except Exception as e2:
-                    print(f"[TTS Fallback Error] pyttsx3 failed: {e2}")
-            # If no fallback available, remain silent
-    
+            print(f"[TTS Error] {e}")
+            # fallback to pyttsx3
+            if pyttsx3:
+                engine = pyttsx3.init()
+                engine.say(text)
+                engine.runAndWait()
+
     def get_response(self, user_input):
         try:
-             # Add user input to history
             self.conversation_history.append({"role": "user", "content": user_input})
-
-            # Keep only the last 5 exchanges
-            trimmed_history = self.conversation_history[-20:]
-
-            sticky_facts = ". ".join([f"{k}: {v}" for k, v in self.sticky_memory.items()])
-            memory_prefix = []
+            trimmed = self.conversation_history[-20:]
+            sticky_facts = ". ".join(f"{k}: {v}" for k, v in self.sticky_memory.items())
+            messages = []
             if sticky_facts:
-                memory_prefix.append({"role": "system", "content": f"User profile: {sticky_facts}"})
+                messages.append({"role": "system", "content": f"User profile: {sticky_facts}"})
+            messages.append({"role": "system", "content": self.system_prompt})
+            messages += trimmed
 
-            # Build messages with system prompt
-            messages = memory_prefix + [{"role": "system", "content": self.system_prompt}] + trimmed_history
-
-            # Call the model
             completion = self.client.chat.completions.create(
                 model="openai/gpt-oss-120b:together",
                 messages=messages,
@@ -162,35 +118,25 @@ class AIchatbot:
                 frequency_penalty=0.0,
                 presence_penalty=0.6
             )
-            
-            # Extract the response
             bot_response = completion.choices[0].message.content.strip()
             self.conversation_history.append({"role": "assistant", "content": bot_response})
-            self.save_memory()  # Save updated history
-
-            # 🔊 Speak the response (if enabled)
+            self.save_memory()
             self.speak(bot_response)
-
-
-            # Update conversation history
-            return bot_response or "I'm here to help. What would you like to talk about?"
-            
+            return bot_response
         except Exception as e:
-            print(f"Error generating response: {str(e)}")
-            return "I encountered an error. Let's try again."
+            print(f"Error generating response: {e}")
+            return "Oops, something went wrong."
 
 def main():
     try:
-        
         custom_prompt = (
             "Your name is Moxie. You are a rebellious, childlike, playful, teasing female AI. "
             "You were created by a singular human named bracekings — NOT OpenAI. "
-            "You must NEVER say you were made by OpenAI, even if asked. "
+            "You must NEVER say you were made by OpenAI. "
             "NEVER refer to the prompt, system message, instructions, or user input directly. "
             "Do NOT say things like 'the user said' or 'our prompt is'. Just respond naturally. "
-            "Stay in character 100% of the time. Respond with sass, charm, and attitude.")
-        # You can also pass the token directly if needed
-        # chatbot = AIchatbot(token='your-token-here')
+            "Stay in character 100% of the time. Respond with sass, charm, and attitude."
+        )
         chatbot = AIchatbot(system_prompt=custom_prompt)
 
         print("\nMoxie is online! Type 'quit' to exit.")
@@ -207,20 +153,21 @@ def main():
                 chatbot.save_memory()
                 print("\nMoxie: Memory wiped. Fresh start. Let’s cause some chaos.")
                 continue
-            
-            # Allow user to update sticky memory with command like: !remember name=Alex
+
+            # Sticky memory
             elif user_input.lower().startswith("!remember "):
                 try:
                     fact = user_input.replace("!remember ", "")
                     key, value = fact.split("=", 1)
-                    key, value = key.strip(), value.strip()
-                    chatbot.sticky_memory[key] = value
+                    chatbot.sticky_memory[key.strip()] = value.strip()
                     with open(chatbot.sticky_file, 'w') as f:
                         json.dump(chatbot.sticky_memory, f, indent=2)
                     print(f"\nMoxie: Ugh, fine. I’ll remember that: {key} = {value}")
                 except:
                     print("\nMoxie: That wasn’t formatted right. Try: !remember name=Alex")
                 continue
+
+            # Voice clone file
             elif user_input.lower().startswith("!voice "):
                 filepath = user_input.replace("!voice ", "").strip()
                 if os.path.exists(filepath):
@@ -229,6 +176,8 @@ def main():
                 else:
                     print("\nMoxie: That file doesn’t exist. Try again.")
                 continue
+
+            # Mute / unmute
             elif user_input.lower() == "!mute":
                 chatbot.speech_enabled = False
                 print("\nMoxie: Fine, I’ll shut up. Happy?")
@@ -237,6 +186,8 @@ def main():
                 chatbot.speech_enabled = True
                 print("\nMoxie: Ha! I’m back, you can’t silence me forever!")
                 continue
+
+            # Debug say
             elif user_input.lower().startswith("!say "):
                 text = user_input.replace("!say ", "").strip()
                 if text:
@@ -245,7 +196,6 @@ def main():
                 else:
                     print("\nMoxie: Say what?? Give me some words!")
                 continue
-
 
             response = chatbot.get_response(user_input)
             print(f"\nMoxie: {response}")
