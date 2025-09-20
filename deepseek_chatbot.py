@@ -1,15 +1,11 @@
 import sys
 
+# Prefer the standard PyAudio package. If it's missing, voice input will be disabled.
 try:
-    import pyaudio
+    import pyaudio  # type: ignore
 except ImportError:
-    try:
-        import PyAudioWPatch as pyaudio
-        sys.modules['pyaudio'] = pyaudio
-    except ImportError:
-        pyaudio = None
+    pyaudio = None
 
-import sys
 print("Python executable:", sys.executable)
 
 
@@ -28,12 +24,9 @@ except ImportError:
 
 import speech_recognition as sr  # 🧠 Voice-to-text support
 
-# Use PyAudioWPatch instead of pyaudio
-try:
-    import PyAudioWPatch as pyaudio
-except ImportError:
-    pyaudio = None
-    print("[Warning] PyAudioWPatch not found! Voice input will be disabled.")
+# Warn if PyAudio missing
+if pyaudio is None:
+    print("[Warning] PyAudio not found! Voice input will be disabled. Install with 'pip install pyaudio' or 'pipwin install pyaudio' on Windows.")
 
 FFMPEG_PATH = os.getenv("FFMPEG_PATH", "C:\\ffmpeg\\bin\\ffmpeg.exe")
 AudioSegment.converter = FFMPEG_PATH
@@ -169,10 +162,10 @@ class AIchatbot:
             print(f"Error generating response: {e}")
             return "Oops, something went wrong."
         
-    # 🎤 NEW: Listen to user via microphone using speech_recognition and PyAudioWPatch
+    # 🎤 NEW: Listen to user via microphone using speech_recognition and standard PyAudio
     def listen_to_user(self):
         if not self.voice_input_enabled:
-            print("Voice input is disabled because PyAudioWPatch is not installed or working.")
+            print("Voice input is disabled because PyAudio is not installed.")
             return None
 
         recognizer = sr.Recognizer()
