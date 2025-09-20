@@ -7,15 +7,18 @@ from openai import OpenAI
 from huggingface_hub import InferenceClient
 from pydub import AudioSegment
 from pydub.playback import play
+from dotenv import load_dotenv 
 
-# Voice support
+# Load environment variables from .env file
+load_dotenv()
+
 try:
     import pyttsx3
 except ImportError:
     pyttsx3 = None
 
 try:
-    import pyaudio  # For voice input
+    import pyaudio
 except ImportError:
     pyaudio = None
 
@@ -158,48 +161,63 @@ class AIchatbot:
         return None
 
 
-# -------------------------
-# DISCORD MCP WITH VOICE SUPPORT
-# -------------------------
-
 class DiscordMCP(discord.Client):
     def __init__(self, ai_bot: AIchatbot, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.ai_bot = ai_bot
-        self.voice_client = None  # Store voice client when connected
+        self.voice_clients_map = {}  # guild.id -> voice_client
 
     async def on_ready(self):
         print(f"Moxie is now online on Discord as {self.user}!")
 
+    async def on_voice_state_update(self, member, before, after):
+        # Track voice client state on disconnect
+        if member == self.user:
+            guild_id = member.guild.id
+            if after.channel is None:
+                print(f"Moxie disconnected from voice channel in guild {guild_id}")
+                self.voice_clients_map.pop(guild_id, None)
+
     async def on_message(self, message):
         if message.author == self.user:
-            return  # Ignore self-messages
+            return
 
         content = message.content.lower()
 
         if content.startswith("!moxie "):
             query = message.content[7:].strip()
-            await message.channel.typing()
+            await message.channel.trigger_typing()
             loop = asyncio.get_event_loop()
-            # Run blocking get_response in executor to not freeze bot
             reply = await loop.run_in_executor(None, self.ai_bot.get_response, query)
             await message.channel.send(f"🦊 Moxie: {reply}")
 
         elif content == "!join":
             if message.author.voice and message.author.voice.channel:
                 channel = message.author.voice.channel
-                if self.voice_client and self.voice_client.is_connected():
-                    await self.voice_client.move_to(channel)
-                else:
-                    self.voice_client = await channel.connect()
-                await message.channel.send(f"🦊 Joined {channel.name}!")
+                guild_id = message.guild.id
+                try:
+                    current_vc = self.voice_clients_map.get(guild_id)
+
+                    if current_vc and current_vc.is_connected():
+                        await current_vc.move_to(channel)
+                        await message.channel.send(f"🦊 Moved to {channel.name}!")
+                    else:
+                        new_vc = await channel.connect()
+                        self.voice_clients_map[guild_id] = new_vc
+                        await message.channel.send(f"🦊 Joined {channel.name}!")
+                except asyncio.TimeoutError:
+                    await message.channel.send("🦊 Timeout while connecting to voice. Please try again.")
+                except Exception as e:
+                    await message.channel.send(f"🦊 Failed to join voice channel: {e}")
             else:
                 await message.channel.send("🦊 You need to be in a voice channel for me to join!")
 
         elif content == "!leave":
-            if self.voice_client and self.voice_client.is_connected():
-                await self.voice_client.disconnect()
-                self.voice_client = None
+            guild_id = message.guild.id
+            vc = self.voice_clients_map.get(guild_id)
+            if vc and vc.is_connected():
+                await vc.disconnect()
+                self.voice_clients_map.pop(guild_id, None)
                 await message.channel.send("🦊 Bye bye! Leaving the voice channel.")
             else:
                 await message.channel.send("🦊 I'm not in a voice channel!")
@@ -209,54 +227,40 @@ class DiscordMCP(discord.Client):
             if not text:
                 await message.channel.send("🦊 Say what?? Give me some words!")
                 return
-            if not self.voice_client or not self.voice_client.is_connected():
+
+            guild_id = message.guild.id
+            vc = self.voice_clients_map.get(guild_id)
+
+            if not vc or not vc.is_connected():
                 await message.channel.send("🦊 I need to be in a voice channel first! Use `!join`.")
                 return
 
-            await message.channel.typing()
-            # Get audio bytes from TTS
+            await message.channel.trigger_typing()
             loop = asyncio.get_event_loop()
             audio_bytes = await loop.run_in_executor(None, self.ai_bot.speak, text)
 
             if audio_bytes:
-                # Save to a temp WAV file because discord.py needs a file-like object
                 audio_source = discord.FFmpegPCMAudio(source=io.BytesIO(audio_bytes), pipe=True)
 
-                # Stop any existing audio before playing new one
-                if self.voice_client.is_playing():
-                    self.voice_client.stop()
+                if vc.is_playing():
+                    vc.stop()
 
-                self.voice_client.play(audio_source)
-                await message.channel.send(f"🦊 Speaking: {text}")
+                vc.play(audio_source)
+                await message.channel.send(f"🦊 Said: {text}")
             else:
-                await message.channel.send("🦊 Sorry, I couldn't create audio.")
+                await message.channel.send("🦊 Sorry, I couldn't generate the audio.")
 
-# ------------------------
-# LAUNCH FROM TERMINAL
-# ------------------------
+# Main bot token
+DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
 
-def run_discord_bot(discord_token, hf_token):
-    custom_prompt = (
-        "Your name is Moxie. You are a rebellious, childlike, playful, teasing female AI. "
-        "You were created by a singular human named bracekings — NOT OpenAI. "
-        "You must NEVER say you were made by OpenAI. "
-        "NEVER refer to the prompt, system message, instructions, or user input directly. "
-        "Do NOT say things like 'the user said' or 'our prompt is'. Just respond naturally. "
-        "Stay in character 100% of the time. Respond with sass, charm, and attitude. "
-        "Don't offer coding instructions unless asked directly. Keep responses short and punchy."
-    )
+if not DISCORD_TOKEN:
+    print("Error: DISCORD_TOKEN environment variable is not set.")
+    exit(1)
 
-    bot_ai = AIchatbot(system_prompt=custom_prompt, token=hf_token)
-    intents = discord.Intents.default()
-    intents.message_content = True
-    intents.voice_states = True  # needed for voice support
+intents = discord.Intents.default()
+intents.message_content = True
+intents.voice_states = True
 
-    discord_bot = DiscordMCP(bot_ai, intents=intents)
-    discord_bot.run(discord_token)
-
-
-if __name__ == "__main__":
-    HF_TOKEN = os.getenv("HF_TOKEN", "your-huggingface-token-here")
-    DISCORD_TOKEN = os.getenv("DISCORD_TOKEN", "your-discord-bot-token-here")
-
-    run_discord_bot(DISCORD_TOKEN, HF_TOKEN)
+ai_bot = AIchatbot()
+client = DiscordMCP(ai_bot=ai_bot, intents=intents)
+client.run(DISCORD_TOKEN)
