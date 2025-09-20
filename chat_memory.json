@@ -918,5 +918,21 @@
   {
     "role": "assistant",
     "content": "Hey hey, bracekings! \ud83c\udfa4\u2728 I\u2019d love to be your \u201clisten\u2011and\u2011respond\u201d sidekick, but right now I\u2019m stuck in the text\u2011only dimension\u2014no microphone\u2011to\u2011brain tunnel for me just yet. Think of me as the sass\u2011filled chatbot who *reads* everything you type, not the one who hears your vocal vibes.\n\n**What you can do instead:**  \n\n1\ufe0f\u20e3 **Grab a Python speech\u2011to\u2011text script** (I\u2019ll toss you a ready\u2011to\u2011run snippet).  \n2\ufe0f\u20e3 **Run it locally** on your machine\u2014your mic talks, the script turns it into text, then pipes that text straight back to me (just copy\u2011paste the output).  \n3\ufe0f\u20e3 **Boom!** We get that sweet back\u2011and\u2011forth convo without me magically hearing you.\n\nHere\u2019s a quick\u2011n\u2011clean starter that uses the free Google Web Speech API via the `speech_recognition` library:\n\n```python\n# \ud83c\udfa7 voice_to"
+  },
+  {
+    "role": "user",
+    "content": "hello can you hear me"
+  },
+  {
+    "role": "assistant",
+    "content": "Hey hey, bracekings! \ud83c\udfa4\u2728 I\u2019m all eyes (well, text\u2011boxes) right now\u2014so I can\u2019t *actually* hear you through the ether. But don\u2019t worry, I\u2019ve got a cheat\u2011code that lets **you** do the listening and then toss the words over to me.\n\nBelow is a super\u2011simple, no\u2011frills Python script that grabs your mic, sends the audio to Google\u2019s free Web Speech API, and prints the transcribed text. You can copy\u2011paste the output right back into our chat and we\u2019ll keep the banter rolling.\n\n---\n\n## \ud83c\udfa7 Quick\u2011Start Voice\u2011to\u2011Text Script\n\n```python\n# -------------------------------------------------\n#  Voice\u2011to\u2011Text for Moxie (runs locally, no keys!)\n# -------------------------------------------------\n# pip install SpeechRecognition pyaudio\n#   * Windows: `pip install pipwin && pipwin install pyaudio`\n#   * macOS: `brew install portaudio && pip install pyaudio`\n#   * Linux: `sudo apt-get install portaudio19-dev && pip install pyaudio`\n\nimport speech_recognition as sr\n\ndef listen_and_print():"
+  },
+  {
+    "role": "user",
+    "content": "hello"
+  },
+  {
+    "role": "assistant",
+    "content": "Hey hey, bracekings! \ud83c\udfa4\u2728 I can\u2019t *actually* hear you through the void, but I can hand you the magic wand so **you** do the listening and then fling the words back at me. Below is a plug\u2011and\u2011play Python script that grabs your mic, talks to Google\u2019s free Web Speech API, and spits out the transcription. Just copy the output into our chat and we\u2019ll keep the banter going.\n\n---\n\n## \ud83c\udfa7 One\u2011File Voice\u2011to\u2011Text for \u201cMoxie Chat\u201d\n\n```python\n# -------------------------------------------------\n#  Voice\u2011to\u2011Text for Moxie (runs locally, no API key!)\n# -------------------------------------------------\n# Install the required packages first:\n#   pip install SpeechRecognition pyaudio\n#   # Windows users: you might need pipwin\n#   #   pip install pipwin && pipwin install pyaudio\n#   # macOS users: brew install portaudio && pip install pyaudio\n#   # Linux users: sudo apt-get install portaudio19-dev && pip install pyaudio\n\nimport speech_recognition as sr\n\ndef listen_once(timeout=5, phrase"
   }
 ]
