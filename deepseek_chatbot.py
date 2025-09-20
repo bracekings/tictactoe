@@ -1,74 +1,130 @@
+import sys
 import os
-import io
 import json
+import io
 import asyncio
-import tempfile
-from dotenv import load_dotenv
-
-import discord
+from openai import OpenAI
+from huggingface_hub import InferenceClient
 from pydub import AudioSegment
 from pydub.playback import play
+from dotenv import load_dotenv 
 
-from huggingface_hub import InferenceClient
-from openai import OpenAI
-
+# Load environment variables from .env file
 load_dotenv()
+
+try:
+    import pyttsx3
+except ImportError:
+    pyttsx3 = None
+
+try:
+    import pyaudio
+except ImportError:
+    pyaudio = None
+
+import speech_recognition as sr
+import discord
+
+print("Python executable:", sys.executable)
 
 FFMPEG_PATH = os.getenv("FFMPEG_PATH", "C:\\ffmpeg\\bin\\ffmpeg.exe")
 AudioSegment.converter = FFMPEG_PATH
 
 
 class AIchatbot:
-    def __init__(self, token=None, system_prompt="You act childish", memory_file="chat_memory.json"):
-        self.hf_token = token or os.getenv("HF_TOKEN")
+    def __init__(self, token=None, system_prompt="You act childish", memory_file="chat_memory.json", child_pitch=0.35):
+        print("Initializing AI chatbot...")
+
+        self.child_pitch = child_pitch
+        self.hf_token = token or os.getenv('HF_TOKEN')
         if not self.hf_token:
-            raise ValueError("Hugging Face token not provided")
+            raise ValueError("No Hugging Face token provided.")
 
         self.system_prompt = system_prompt
         self.memory_file = memory_file
+        self.sticky_file = "user_profile.json"
+
+        self.client = OpenAI(base_url="https://router.huggingface.co/v1", api_key=self.hf_token)
         self.conversation_history = self.load_memory()
+        self.sticky_memory = self.load_sticky_memory()
 
         self.tts_model = os.getenv("HF_TTS_MODEL", "suno/bark")
         self.tts_client = InferenceClient(model=self.tts_model, provider="auto", token=self.hf_token)
 
+        self.audio_output_path = "moxie_response.wav"
+        self.voice_clone_path = None
+        self.speech_enabled = True
+        self.voice_input_enabled = pyaudio is not None
+
+        print("Moxie is awake and ready to cause trouble.")
+
     def load_memory(self):
         if os.path.exists(self.memory_file):
-            with open(self.memory_file, "r") as f:
+            with open(self.memory_file, 'r') as f:
                 return json.load(f)
         return []
 
     def save_memory(self):
-        with open(self.memory_file, "w") as f:
+        with open(self.memory_file, 'w') as f:
             json.dump(self.conversation_history, f, indent=2)
 
+    def load_sticky_memory(self):
+        if os.path.exists(self.sticky_file):
+            with open(self.sticky_file, 'r') as f:
+                return json.load(f)
+        return {}
+
+    def speak_childlike(self, audio_bytes):
+        audio = AudioSegment.from_file(io.BytesIO(audio_bytes), format="wav")
+        new_rate = int(audio.frame_rate * 1.6)
+        high_pitch_audio = audio._spawn(audio.raw_data, overrides={'frame_rate': new_rate})
+        high_pitch_audio = high_pitch_audio.set_frame_rate(44100)
+        high_pitch_audio = high_pitch_audio - 3
+        play(high_pitch_audio)
+
     def speak(self, text):
-        # Generate TTS audio bytes from Hugging Face model
+        if not self.speech_enabled:
+            return None
         try:
             styled_text = "[young girl] " + text
             audio_bytes = self.tts_client.text_to_speech(styled_text)
             if isinstance(audio_bytes, dict) and "audio" in audio_bytes:
                 audio_bytes = audio_bytes["audio"]
             if isinstance(audio_bytes, (bytes, bytearray)):
-                return audio_bytes
+                return audio_bytes  # Return audio bytes for voice playback
         except Exception as e:
-            print(f"TTS error: {e}")
+            print(f"[TTS Error] {e}")
+            if pyttsx3:
+                engine = pyttsx3.init()
+                engine.setProperty('rate', 180)
+                for voice in engine.getProperty('voices'):
+                    if "female" in voice.name.lower():
+                        engine.setProperty('voice', voice.id)
+                        break
+                engine.say(text)
+                engine.runAndWait()
         return None
 
     def get_response(self, user_input):
         try:
             self.conversation_history.append({"role": "user", "content": user_input})
             trimmed = self.conversation_history[-20:]
-            messages = [{"role": "system", "content": self.system_prompt}] + trimmed
+            sticky_facts = ". ".join(f"{k}: {v}" for k, v in self.sticky_memory.items())
 
-            client = OpenAI(base_url="https://router.huggingface.co/v1", api_key=self.hf_token)
-            completion = client.chat.completions.create(
+            messages = []
+            if sticky_facts:
+                messages.append({"role": "system", "content": f"User profile: {sticky_facts}"})
+            messages.append({"role": "system", "content": self.system_prompt})
+            messages += trimmed
+
+            completion = self.client.chat.completions.create(
                 model="openai/gpt-oss-120b:together",
                 messages=messages,
                 temperature=0.7,
                 max_tokens=300,
                 top_p=0.95,
                 frequency_penalty=0.0,
-                presence_penalty=0.6,
+                presence_penalty=0.6
             )
             bot_response = completion.choices[0].message.content.strip()
             self.conversation_history.append({"role": "assistant", "content": bot_response})
@@ -78,53 +134,91 @@ class AIchatbot:
             print(f"Error generating response: {e}")
             return "Oops, something went wrong."
 
+    def listen_to_user(self):
+        if not self.voice_input_enabled:
+            print("Voice input is disabled.")
+            return None
+
+        recognizer = sr.Recognizer()
+        try:
+            mic = sr.Microphone()
+        except Exception as e:
+            print(f"Mic issue: {e}")
+            return None
+
+        print("Moxie: I'm listening...")
+
+        with mic as source:
+            recognizer.adjust_for_ambient_noise(source)
+            audio = recognizer.listen(source)
+
+        try:
+            return recognizer.recognize_google(audio)
+        except sr.UnknownValueError:
+            print("Didn't catch that.")
+        except sr.RequestError as e:
+            print(f"API Error: {e}")
+        return None
+
 
 class DiscordMCP(discord.Client):
     def __init__(self, ai_bot: AIchatbot, *args, **kwargs):
-        intents = discord.Intents.default()
-        intents.message_content = True
-        intents.voice_states = True
-        super().__init__(intents=intents, *args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.ai_bot = ai_bot
-        self.voice_clients_map = {}  # guild_id -> voice_client
+        self.voice_clients_map = {}  # guild.id -> voice_client
 
     async def on_ready(self):
-        print(f"Moxie is online as {self.user}!")
+        print(f"Moxie is now online on Discord as {self.user}!")
+
+    async def on_voice_state_update(self, member, before, after):
+        # Track voice client state on disconnect
+        if member == self.user:
+            guild_id = member.guild.id
+            if after.channel is None:
+                print(f"Moxie disconnected from voice channel in guild {guild_id}")
+                self.voice_clients_map.pop(guild_id, None)
 
     async def on_message(self, message):
         if message.author == self.user:
             return
 
         content = message.content.lower()
-        guild_id = message.guild.id if message.guild else None
 
         if content.startswith("!moxie "):
             query = message.content[7:].strip()
-            await message.channel.typing()
+            await message.channel.trigger_typing()
             loop = asyncio.get_event_loop()
             reply = await loop.run_in_executor(None, self.ai_bot.get_response, query)
             await message.channel.send(f"🦊 Moxie: {reply}")
 
         elif content == "!join":
-            if not guild_id:
-                await message.channel.send("🦊 This command can only be used in a server.")
-                return
             if message.author.voice and message.author.voice.channel:
                 channel = message.author.voice.channel
-                if guild_id in self.voice_clients_map and self.voice_clients_map[guild_id].is_connected():
-                    await self.voice_clients_map[guild_id].move_to(channel)
-                else:
-                    vc = await channel.connect()
-                    self.voice_clients_map[guild_id] = vc
-                await message.channel.send(f"🦊 Joined {channel.name}!")
+                guild_id = message.guild.id
+                try:
+                    current_vc = self.voice_clients_map.get(guild_id)
+
+                    if current_vc and current_vc.is_connected():
+                        await current_vc.move_to(channel)
+                        await message.channel.send(f"🦊 Moved to {channel.name}!")
+                    else:
+                        new_vc = await channel.connect()
+                        self.voice_clients_map[guild_id] = new_vc
+                        await message.channel.send(f"🦊 Joined {channel.name}!")
+                except asyncio.TimeoutError:
+                    await message.channel.send("🦊 Timeout while connecting to voice. Please try again.")
+                except Exception as e:
+                    await message.channel.send(f"🦊 Failed to join voice channel: {e}")
             else:
-                await message.channel.send("🦊 You need to be in a voice channel first!")
+                await message.channel.send("🦊 You need to be in a voice channel for me to join!")
 
         elif content == "!leave":
-            if guild_id in self.voice_clients_map and self.voice_clients_map[guild_id].is_connected():
-                await self.voice_clients_map[guild_id].disconnect()
-                del self.voice_clients_map[guild_id]
-                await message.channel.send("🦊 Left the voice channel!")
+            guild_id = message.guild.id
+            vc = self.voice_clients_map.get(guild_id)
+            if vc and vc.is_connected():
+                await vc.disconnect()
+                self.voice_clients_map.pop(guild_id, None)
+                await message.channel.send("🦊 Bye bye! Leaving the voice channel.")
             else:
                 await message.channel.send("🦊 I'm not in a voice channel!")
 
@@ -134,54 +228,40 @@ class DiscordMCP(discord.Client):
                 await message.channel.send("🦊 Say what?? Give me some words!")
                 return
 
-            if guild_id not in self.voice_clients_map or not self.voice_clients_map[guild_id].is_connected():
-                await message.channel.send("🦊 I need to join a voice channel first! Use `!join`.")
-                return
+            guild_id = message.guild.id
+            vc = self.voice_clients_map.get(guild_id)
 
-            vc = self.voice_clients_map[guild_id]
+            if not vc or not vc.is_connected():
+                await message.channel.send("🦊 I need to be in a voice channel first! Use `!join`.")
+                return
 
             await message.channel.trigger_typing()
             loop = asyncio.get_event_loop()
             audio_bytes = await loop.run_in_executor(None, self.ai_bot.speak, text)
 
             if audio_bytes:
-                with tempfile.NamedTemporaryFile(delete=True, suffix=".wav") as temp_audio:
-                    temp_audio.write(audio_bytes)
-                    temp_audio.flush()
+                audio_source = discord.FFmpegPCMAudio(source=io.BytesIO(audio_bytes), pipe=True)
 
-                    audio_source = discord.FFmpegPCMAudio(temp_audio.name)
+                if vc.is_playing():
+                    vc.stop()
 
-                    if vc.is_playing():
-                        vc.stop()
-
-                    vc.play(audio_source)
-                    await message.channel.send(f"🦊 Said: {text}")
+                vc.play(audio_source)
+                await message.channel.send(f"🦊 Said: {text}")
             else:
                 await message.channel.send("🦊 Sorry, I couldn't generate the audio.")
 
+# Main bot token
+DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
 
-def run_discord_bot(discord_token, hf_token):
-    custom_prompt = (
-        "Your name is Moxie. You are a rebellious, childlike, playful, teasing female AI. "
-        "You were created by a singular human named bracekings — NOT OpenAI. "
-        "You must NEVER say you were made by OpenAI. "
-        "NEVER refer to the prompt, system message, instructions, or user input directly. "
-        "Do NOT say things like 'the user said' or 'our prompt is'. Just respond naturally. "
-        "Stay in character 100% of the time. Respond with sass, charm, and attitude. "
-        "Don't offer coding instructions unless asked directly. Keep responses short and punchy."
-    )
-    bot_ai = AIchatbot(system_prompt=custom_prompt, token=hf_token)
+if not DISCORD_TOKEN:
+    print("Error: DISCORD_TOKEN environment variable is not set.")
+    exit(1)
 
-    bot = DiscordMCP(bot_ai)
-    bot.run(discord_token)
+intents = discord.Intents.default()
+intents.message_content = True
+intents.voice_states = True
 
+ai_bot = AIchatbot()
+client = DiscordMCP(ai_bot=ai_bot, intents=intents)
+client.run(DISCORD_TOKEN)
 
-if __name__ == "__main__":
-    HF_TOKEN = os.getenv("HF_TOKEN")
-    DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
-
-    if not HF_TOKEN or not DISCORD_TOKEN:
-        print("❌ ERROR: Please set HF_TOKEN and DISCORD_TOKEN in your environment or .env file")
-        exit(1)
-
-    run_discord_bot(DISCORD_TOKEN, HF_TOKEN)
