@@ -1,3 +1,18 @@
+import sys
+
+try:
+    import pyaudio
+except ImportError:
+    try:
+        import PyAudioWPatch as pyaudio
+        sys.modules['pyaudio'] = pyaudio
+    except ImportError:
+        pyaudio = None
+
+import sys
+print("Python executable:", sys.executable)
+
+
 import os
 import json
 from openai import OpenAI
@@ -8,8 +23,17 @@ import io
 
 try:
     import pyttsx3
-except:
+except ImportError:
     pyttsx3 = None
+
+import speech_recognition as sr  # 🧠 Voice-to-text support
+
+# Use PyAudioWPatch instead of pyaudio
+try:
+    import PyAudioWPatch as pyaudio
+except ImportError:
+    pyaudio = None
+    print("[Warning] PyAudioWPatch not found! Voice input will be disabled.")
 
 FFMPEG_PATH = os.getenv("FFMPEG_PATH", "C:\\ffmpeg\\bin\\ffmpeg.exe")
 AudioSegment.converter = FFMPEG_PATH
@@ -47,6 +71,7 @@ class AIchatbot:
         self.audio_output_path = "moxie_response.wav"
         self.voice_clone_path = None
         self.speech_enabled = True
+        self.voice_input_enabled = pyaudio is not None
 
     def load_memory(self):
         if os.path.exists(self.memory_file):
@@ -74,21 +99,21 @@ class AIchatbot:
         return {}
 
     def speak_childlike(self, audio_bytes):
-      """Raise pitch and adjust tempo to sound like a playful young girl."""
-      audio = AudioSegment.from_file(io.BytesIO(audio_bytes), format="wav")
+        """Raise pitch and adjust tempo to sound like a playful young girl."""
+        audio = AudioSegment.from_file(io.BytesIO(audio_bytes), format="wav")
 
-    # Increase pitch and slightly speed up
-      pitch_factor = 1.6  # higher pitch
-      tempo_factor = 1.1  # slightly faster
+        # Increase pitch and slightly speed up
+        pitch_factor = 1.6  # higher pitch
+        tempo_factor = 1.1  # slightly faster
 
-      new_rate = int(audio.frame_rate * pitch_factor)
-      high_pitch_audio = audio._spawn(audio.raw_data, overrides={'frame_rate': new_rate})
-      high_pitch_audio = high_pitch_audio.set_frame_rate(44100)
+        new_rate = int(audio.frame_rate * pitch_factor)
+        high_pitch_audio = audio._spawn(audio.raw_data, overrides={'frame_rate': new_rate})
+        high_pitch_audio = high_pitch_audio.set_frame_rate(44100)
 
-    # Optional: reduce volume slightly for softer tone
-      high_pitch_audio = high_pitch_audio - 3
+        # Optional: reduce volume slightly for softer tone
+        high_pitch_audio = high_pitch_audio - 3
 
-      play(high_pitch_audio)
+        play(high_pitch_audio)
     
     def speak(self, text):
         if not self.speech_enabled:
@@ -143,6 +168,35 @@ class AIchatbot:
         except Exception as e:
             print(f"Error generating response: {e}")
             return "Oops, something went wrong."
+        
+    # 🎤 NEW: Listen to user via microphone using speech_recognition and PyAudioWPatch
+    def listen_to_user(self):
+        if not self.voice_input_enabled:
+            print("Voice input is disabled because PyAudioWPatch is not installed or working.")
+            return None
+
+        recognizer = sr.Recognizer()
+        try:
+            mic = sr.Microphone()
+        except Exception as e:
+            print(f"Microphone not accessible: {e}")
+            return None
+
+        print("\nMoxie: I'm listening... Speak up!")
+
+        with mic as source:
+            recognizer.adjust_for_ambient_noise(source)
+            audio = recognizer.listen(source)
+
+        try:
+            user_text = recognizer.recognize_google(audio)
+            print(f"\nYou (via voice): {user_text}")
+            return user_text
+        except sr.UnknownValueError:
+            print("\nMoxie: Uh, I couldn't understand that. Speak clearly next time.")
+        except sr.RequestError as e:
+            print(f"\nMoxie: My ears are broken (API error: {e})")
+        return None
 
 def main():
     try:
@@ -161,7 +215,15 @@ def main():
         print("-" * 50)
 
         while True:
-            user_input = input("\nYou: ")
+            user_input = input("\nYou: ").strip()
+
+            if user_input == "":
+                voice_input = chatbot.listen_to_user()
+                if voice_input:
+                    response = chatbot.get_response(voice_input)
+                    print(f"\nMoxie: {response}")
+                continue
+            
             if user_input.lower() in ['quit', 'exit']:
                 print("\nMoxie: Fine, leave me. I’ll be here plotting your comeback.")
                 break
@@ -214,6 +276,13 @@ def main():
                     print("\nMoxie: Say what?? Give me some words!")
                 continue
 
+            elif user_input.lower() == "!listen":
+                voice_input = chatbot.listen_to_user()
+                if voice_input:
+                    response = chatbot.get_response(voice_input)
+                    print(f"\nMoxie: {response}")
+                continue
+            
             response = chatbot.get_response(user_input)
             print(f"\nMoxie: {response}")
 
