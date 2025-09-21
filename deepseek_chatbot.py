@@ -92,8 +92,12 @@ class AIchatbot:
         new_rate = int(audio.frame_rate * 1.6)
         high_pitch_audio = audio._spawn(audio.raw_data, overrides={'frame_rate': new_rate})
         high_pitch_audio = high_pitch_audio.set_frame_rate(44100)
-        high_pitch_audio = high_pitch_audio - 3
-        play(high_pitch_audio)
+        high_pitch_audio = high_pitch_audio - 3  # Slight volume reduction
+    
+        output_buffer = io.BytesIO()
+        high_pitch_audio.export(output_buffer, format="wav")
+        output_buffer.seek(0)
+        return output_buffer  # Return BytesIO stream instead of playing
 
     def speak(self, text):
         if not self.speech_enabled:
@@ -271,10 +275,26 @@ class DiscordMCP(discord.Client):
 
 
             loop = asyncio.get_event_loop()
-            audio_bytes = await loop.run_in_executor(None, self.ai_bot.speak, text)
+            # Generate base TTS audio
+            base_audio = await loop.run_in_executor(None, self.ai_bot.speak, text)
 
-            if audio_bytes:
-                audio_source = discord.FFmpegPCMAudio(source=io.BytesIO(audio_bytes), pipe=True)
+            if base_audio:
+                # Apply childlike pitch and get output stream
+                processed_audio = await loop.run_in_executor(None, self.ai_bot.speak_childlike, base_audio)
+
+                audio_source = discord.FFmpegPCMAudio(source=processed_audio, pipe=True)
+
+                if vc.is_playing():
+                    vc.stop()
+
+                vc.play(audio_source)
+                await message.channel.send(f"🦊 Said: {text}")
+            else:
+                await message.channel.send("🦊 Sorry, I couldn't generate the audio.")
+
+
+            if base_audio:
+                audio_source = discord.FFmpegPCMAudio(source=io.BytesIO(base_audio), pipe=True)
 
                 if vc.is_playing():
                     vc.stop()
