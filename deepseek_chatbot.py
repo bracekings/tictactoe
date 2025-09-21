@@ -9,8 +9,21 @@ from pydub import AudioSegment
 from pydub.playback import play
 from dotenv import load_dotenv 
 
-# Load environment variables from .env file
-load_dotenv()
+# --- Load .env File with Debug Info ---
+env_path = os.path.join(os.path.dirname(__file__), ".env")
+print("🔍 Looking for .env at:", env_path)
+print("📂 Does .env exist?", os.path.isfile(env_path))
+
+load_dotenv(dotenv_path=env_path)
+
+DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
+print("🔑 Loaded DISCORD_TOKEN:", repr(DISCORD_TOKEN)[:20] if DISCORD_TOKEN else "None (Not found!)")
+
+HF_TOKEN = os.getenv("HF_TOKEN")
+FFMPEG_PATH = os.getenv("FFMPEG_PATH", "C:\\ffmpeg\\bin\\ffmpeg.exe")
+
+# --- Python Executable Debug ---
+print("🐍 Python executable:", sys.executable)
 
 try:
     import pyttsx3
@@ -184,27 +197,42 @@ class DiscordMCP(discord.Client):
 
         content = message.content.lower()
 
+        # Debug print to check what type message.channel is at start of on_message
+        print(f"[DEBUG] message.channel: {message.channel} (type: {type(message.channel)})")
+
         if content.startswith("!moxie "):
             query = message.content[7:].strip()
-            await message.channel.trigger_typing()
+            
+            # Safe trigger_typing: check if method exists
+            if hasattr(message.channel, "trigger_typing"):    
+                await message.channel.trigger_typing()
+            else:
+                print("[WARNING] message.channel has no trigger_typing method!")
+    
+            
             loop = asyncio.get_event_loop()
             reply = await loop.run_in_executor(None, self.ai_bot.get_response, query)
             await message.channel.send(f"🦊 Moxie: {reply}")
 
         elif content == "!join":
             if message.author.voice and message.author.voice.channel:
-                channel = message.author.voice.channel
+                voice_channel = message.author.voice.channel
+                
+                # Debug print to confirm voice channel type
+                print(f"[DEBUG] voice_channel: {voice_channel} (type: {type(voice_channel)})")
+
+                
                 guild_id = message.guild.id
                 try:
                     current_vc = self.voice_clients_map.get(guild_id)
 
                     if current_vc and current_vc.is_connected():
-                        await current_vc.move_to(channel)
-                        await message.channel.send(f"🦊 Moved to {channel.name}!")
+                        await current_vc.move_to(voice_channel)
+                        await message.channel.send(f"🦊 Moved to {voice_channel.name}!")
                     else:
-                        new_vc = await channel.connect()
+                        new_vc = await voice_channel.connect()
                         self.voice_clients_map[guild_id] = new_vc
-                        await message.channel.send(f"🦊 Joined {channel.name}!")
+                        await message.channel.send(f"🦊 Joined {voice_channel.name}!")
                 except asyncio.TimeoutError:
                     await message.channel.send("🦊 Timeout while connecting to voice. Please try again.")
                 except Exception as e:
@@ -235,7 +263,13 @@ class DiscordMCP(discord.Client):
                 await message.channel.send("🦊 I need to be in a voice channel first! Use `!join`.")
                 return
 
+             # Safely trigger typing in the text channel if possible
+        if hasattr(message.channel, "trigger_typing"):
             await message.channel.trigger_typing()
+        else:
+            print(f"[WARNING] Can't trigger typing: {type(message.channel)}")
+
+
             loop = asyncio.get_event_loop()
             audio_bytes = await loop.run_in_executor(None, self.ai_bot.speak, text)
 
@@ -249,6 +283,7 @@ class DiscordMCP(discord.Client):
                 await message.channel.send(f"🦊 Said: {text}")
             else:
                 await message.channel.send("🦊 Sorry, I couldn't generate the audio.")
+
 
 # Main bot token
 DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
@@ -264,4 +299,14 @@ intents.voice_states = True
 ai_bot = AIchatbot()
 client = DiscordMCP(ai_bot=ai_bot, intents=intents)
 client.run(DISCORD_TOKEN)
+print("DISCORD_TOKEN (first 10 chars):", repr(DISCORD_TOKEN[:10]) if DISCORD_TOKEN else "None")
 
+if not DISCORD_TOKEN or len(DISCORD_TOKEN.strip()) < 10:
+    print("❌ ERROR: DISCORD_TOKEN is missing or invalid. Please check your .env file.")
+    exit(1)
+else:
+    print("✅ Discord token loaded.")
+
+print("Current working directory:", os.getcwd())
+print("Looking for .env in:", os.path.abspath("."))
+print("Does .env exist?", os.path.isfile(".env"))

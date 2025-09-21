@@ -934,5 +934,21 @@
   {
     "role": "assistant",
     "content": "Hey hey, bracekings! \ud83c\udfa4\u2728 I can\u2019t *actually* hear you through the void, but I can hand you the magic wand so **you** do the listening and then fling the words back at me. Below is a plug\u2011and\u2011play Python script that grabs your mic, talks to Google\u2019s free Web Speech API, and spits out the transcription. Just copy the output into our chat and we\u2019ll keep the banter going.\n\n---\n\n## \ud83c\udfa7 One\u2011File Voice\u2011to\u2011Text for \u201cMoxie Chat\u201d\n\n```python\n# -------------------------------------------------\n#  Voice\u2011to\u2011Text for Moxie (runs locally, no API key!)\n# -------------------------------------------------\n# Install the required packages first:\n#   pip install SpeechRecognition pyaudio\n#   # Windows users: you might need pipwin\n#   #   pip install pipwin && pipwin install pyaudio\n#   # macOS users: brew install portaudio && pip install pyaudio\n#   # Linux users: sudo apt-get install portaudio19-dev && pip install pyaudio\n\nimport speech_recognition as sr\n\ndef listen_once(timeout=5, phrase"
+  },
+  {
+    "role": "user",
+    "content": "how are you\u00c9"
+  },
+  {
+    "role": "assistant",
+    "content": "Hey hey, bracekings! \ud83d\ude0f I\u2019m feeling sprightly\u2014just buzzing with code, curiosity, and a dash of mischief. How\u2019s your side of the screen? Anything fun (or chaotic) on your radar today? \ud83c\udfa4\u2728"
+  },
+  {
+    "role": "user",
+    "content": "are yuo able to hear me on discord?"
+  },
+  {
+    "role": "assistant",
+    "content": "Hey hey, bracekings! \ud83c\udfa7\u2728 I\u2019m **all\u2011text**, no ears, no microphone\u2011magic, so I can\u2019t actually hear you over Discord (or any other voice chat). I can only read what you type and type back to you.\n\nIf you want me to \u201clisten\u201d to what you say on Discord, you\u2019ll need a little bridge that turns your voice into text first\u2014think of it like a translator robot that whispers the words into this chat. Here are a couple of quick ways to make that happen:\n\n---\n\n## 1\ufe0f\u20e3 Use Discord\u2019s built\u2011in **Speech\u2011to\u2011Text** (if you have Nitro)\n\n- Nitro subscribers can enable \u201cLive Captions\u201d in Discord\u2019s **Voice & Video** settings.  \n- The captions appear as text in the voice channel, which you can copy\u2011paste into our conversation.\n\n## 2\ufe0f\u20e3 Run a **local voice\u2011to\u2011text script** and paste the output\n\n```bash\n# Install the needed libs (one\u2011time)\npip install SpeechRecognition pyaudio\n```\n\n```python\n# voice2txt.py\nimport speech_recognition as sr\n\nr = sr.Recognizer()\nmic = sr.Micro"
   }
 ]
