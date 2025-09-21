@@ -275,14 +275,20 @@ class DiscordMCP(discord.Client):
 
 
             loop = asyncio.get_event_loop()
-            # Generate base TTS audio
+
+            # Step 1: Generate the base TTS audio
             base_audio = await loop.run_in_executor(None, self.ai_bot.speak, text)
 
+            # Step 2: Apply the childlike pitch transformation
             if base_audio:
-                # Apply childlike pitch and get output stream
                 processed_audio = await loop.run_in_executor(None, self.ai_bot.speak_childlike, base_audio)
 
-                audio_source = discord.FFmpegPCMAudio(source=processed_audio, pipe=True)
+            # Step 3: Use FFmpegPCMAudio with the processed audio stream
+                audio_source = discord.FFmpegPCMAudio(
+                    source=processed_audio, 
+                    pipe=True, 
+                    executable=FFMPEG_PATH  # Optional: explicitly use your ffmpeg path
+                )
 
                 if vc.is_playing():
                     vc.stop()
@@ -291,7 +297,6 @@ class DiscordMCP(discord.Client):
                 await message.channel.send(f"🦊 Said: {text}")
             else:
                 await message.channel.send("🦊 Sorry, I couldn't generate the audio.")
-
 
             if base_audio:
                 audio_source = discord.FFmpegPCMAudio(source=io.BytesIO(base_audio), pipe=True)
