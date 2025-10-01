@@ -289,21 +289,87 @@ class DiscordMCP(discord.Client):
         super().__init__(*args, **kwargs)
         self.ai_bot = ai_bot
         self.voice_clients_map = {}  # guild.id -> voice_client
+        # guild.id -> bool whether a connect() is in progress (to avoid races)
+        self.connecting = {}
         # guild.id -> asyncio.Task for recording loop
         self.recording_tasks = {}
         # guild.id -> last text channel used for transcripts
         self.recording_text_channel = {}
+        # guild.id -> bool whether transcription loop is actively listening
+        self.listening_state = {}
+
+    def _resolve_voice_client(self, guild):
+        """Return a live VoiceClient for the given guild.
+
+        This checks the cached `voice_clients_map` first, but if that is stale
+        it falls back to scanning `self.voice_clients` (the client's active
+        voice connections) and repairs the cache.
+        """
+        if guild is None:
+            return None
+        gid = getattr(guild, 'id', None)
+        if gid is None:
+            return None
+
+        vc = self.voice_clients_map.get(gid)
+        try:
+            if vc is not None:
+                is_conn = False
+                is_attr = getattr(vc, 'is_connected', None)
+                if callable(is_attr):
+                    is_conn = is_attr()
+                else:
+                    is_conn = bool(is_attr)
+                if is_conn:
+                    return vc
+        except Exception:
+            # If checking fails, we'll fall back to scanning active clients
+            pass
+
+        # Fallback: scan the client's active voice connections
+        try:
+            for active in getattr(self, 'voice_clients', []):
+                try:
+                    if getattr(active, 'guild', None) and getattr(active.guild, 'id', None) == gid:
+                        # repair the cache
+                        self.voice_clients_map[gid] = active
+                        return active
+                except Exception:
+                    continue
+        except Exception:
+            pass
+
+        # Nothing found
+        return None
 
     async def on_ready(self):
         print(f"Moxie is now online on Discord as {self.user}!")
+
+    async def safe_send(self, channel, content):
+        """Send to a channel but guard against session-closed errors."""
+        try:
+            if channel and hasattr(channel, 'send'):
+                await channel.send(content)
+        except Exception as e:
+            # Log and continue — do not let a send error crash the bot
+            print(f"[DEBUG] safe_send failed: {type(e).__name__}: {e}")
 
     async def on_voice_state_update(self, member, before, after):
         # Track voice client state on disconnect
         if member == self.user:
             guild_id = member.guild.id
-            if after.channel is None:
+            # Joined a voice channel
+            if (before is None or before.channel is None) and (after is not None and after.channel is not None):
+                print(f"Moxie connected to voice channel in guild {guild_id}: {after.channel}")
+            # Left a voice channel
+            elif (before is not None and before.channel is not None) and (after is None or after.channel is None):
                 print(f"Moxie disconnected from voice channel in guild {guild_id}")
                 self.voice_clients_map.pop(guild_id, None)
+                # Stop any transcription loop for this guild
+                try:
+                    self.stop_transcription_loop(guild_id)
+                except Exception:
+                    pass
 
     async def on_message(self, message):
         if message.author == self.user:
@@ -328,60 +394,119 @@ class DiscordMCP(discord.Client):
             print(f"[DEBUG] Received !moxie from {sender_name}: {query}")
             loop = asyncio.get_event_loop()
             reply = await loop.run_in_executor(None, self.ai_bot.get_response, query, sender_name)
-            await message.channel.send(f"🦊 Moxie: {reply}")
+            await self.safe_send(message.channel, f"🦊 Moxie: {reply}")
 
         elif content == "!join":
-            if message.author.voice and message.author.voice.channel:
-                voice_channel = message.author.voice.channel
-                
-                # Debug print to confirm voice channel type
+            # Diagnose and handle join reliably
+            try:
+                author_voice = getattr(message.author, 'voice', None)
+            except Exception as e:
+                author_voice = None
+                print(f"[DEBUG] Could not read message.author.voice: {e}")
+
+            print(f"[DEBUG] message.author.voice: {author_voice}")
+
+            if author_voice and getattr(author_voice, 'channel', None):
+                voice_channel = author_voice.channel
                 print(f"[DEBUG] voice_channel: {voice_channel} (type: {type(voice_channel)})")
 
-                
                 guild_id = message.guild.id
                 try:
-                    current_vc = self.voice_clients_map.get(guild_id)
+                    if self.connecting.get(guild_id):
+                        await self.safe_send(message.channel, "🦊 Already attempting to connect to voice for this guild. Please wait a moment.")
+                        return
 
-                    if current_vc and current_vc.is_connected():
-                        await current_vc.move_to(voice_channel)
-                        await message.channel.send(f"🦊 Moved to {voice_channel.name}!")
-                    else:
-                        new_vc = await voice_channel.connect()
-                        self.voice_clients_map[guild_id] = new_vc
-                        # Start background recording loop for this guild
+                    self.connecting[guild_id] = True
+                    new_vc = None
+
+                    # Additional diagnostics: show bot member and permissions
+                    try:
+                        me = message.guild.get_member(self.user.id)
+                    except Exception:
+                        me = None
+                    print(f"[DEBUG] bot member in guild: {me}")
+                    try:
+                        perms = voice_channel.permissions_for(me) if me and voice_channel else None
+                    except Exception as e:
+                        perms = None
+                        print(f"[DEBUG] could not read permissions_for: {e}")
+                    print(f"[DEBUG] voice channel perms for bot: {perms}")
+
+                    current_vc = self._resolve_voice_client(message.guild)
+                    print(f"[DEBUG] cached vc: {self.voice_clients_map.get(guild_id)} | resolved vc: {current_vc} | active voice_clients: {getattr(self, 'voice_clients', [])}")
+
+                    if current_vc and getattr(current_vc, 'is_connected', lambda: False)():
                         try:
-                            self.start_transcription_loop(guild_id, new_vc, message.channel)
-                            await message.channel.send(f"🦊 Joined {voice_channel.name} and started listening!")
+                            await current_vc.move_to(voice_channel)
+                            self.voice_clients_map[guild_id] = current_vc
+                            await self.safe_send(message.channel, f"🦊 Moved to {voice_channel.name}!")
                         except Exception as e:
-                            await message.channel.send(f"🦊 Joined {voice_channel.name}, but couldn't start listening: {e}")
+                            print(f"[DEBUG] Error moving existing vc: {e}")
+                            await self.safe_send(message.channel, f"🦊 Connected but failed to move voice client: {e}")
+                    else:
+                        try:
+                            new_vc = await voice_channel.connect()
+                            self.voice_clients_map[guild_id] = new_vc
+                        except asyncio.CancelledError:
+                            print("[DEBUG] voice connect cancelled")
+                        except Exception as e:
+                            print(f"[DEBUG] Exception while connecting to voice: {type(e).__name__}: {e}")
+                            await self.safe_send(message.channel, f"🦊 Failed to connect to voice channel: {e}")
+                            new_vc = None
+
+                        if new_vc:
+                            try:
+                                started = self.start_transcription_loop(guild_id, new_vc, message.channel)
+                                if started and self.listening_state.get(guild_id):
+                                    await self.safe_send(message.channel, f"🦊 Joined {voice_channel.name} and started listening!")
+                                elif started:
+                                    await self.safe_send(message.channel, f"🦊 Joined {voice_channel.name}. Listening did not start (sinks missing or disabled).")
+                                else:
+                                    await self.safe_send(message.channel, f"🦊 Joined {voice_channel.name}, but live listening is unavailable on this environment.")
+                            except Exception as e:
+                                print(f"[DEBUG] start_transcription_loop error: {e}")
+                                await self.safe_send(message.channel, f"🦊 Joined {voice_channel.name}, but couldn't start listening: {e}")
                 except asyncio.TimeoutError:
-                    await message.channel.send("🦊 Timeout while connecting to voice. Please try again.")
+                    await self.safe_send(message.channel, "🦊 Timeout while connecting to voice. Please try again.")
                 except Exception as e:
-                    await message.channel.send(f"🦊 Failed to join voice channel: {e}")
+                    await self.safe_send(message.channel, f"🦊 Failed to join voice channel: {e}")
+                finally:
+                    try:
+                        self.connecting[guild_id] = False
+                    except Exception:
+                        pass
             else:
-                await message.channel.send("🦊 You need to be in a voice channel for me to join!")
+                await self.safe_send(message.channel, "🦊 You need to be in a voice channel for me to join!")
 
         elif content == "!leave":
             guild_id = message.guild.id
-            vc = self.voice_clients_map.get(guild_id)
-            if vc and vc.is_connected():
-                await vc.disconnect()
+            vc = self._resolve_voice_client(message.guild)
+            if vc and getattr(vc, 'is_connected', lambda: False)():
+                # Stop the transcription loop explicitly before disconnecting
+                try:
+                    self.stop_transcription_loop(guild_id)
+                except Exception:
+                    pass
+                try:
+                    await vc.disconnect()
+                except Exception:
+                    pass
                 self.voice_clients_map.pop(guild_id, None)
-                await message.channel.send("🦊 Bye bye! Leaving the voice channel.")
+                await self.safe_send(message.channel, "🦊 Bye bye! Leaving the voice channel and stopped listening.")
             else:
-                await message.channel.send("🦊 I'm not in a voice channel!")
+                await self.safe_send(message.channel, "🦊 I'm not in a voice channel!")
 
         elif content.startswith("!say "):
             text = message.content[5:].strip()
             if not text:
-                await message.channel.send("🦊 Say what?? Give me some words!")
+                await self.safe_send(message.channel, "🦊 Say what?? Give me some words!")
                 return
 
             guild_id = message.guild.id
-            vc = self.voice_clients_map.get(guild_id)
+            vc = self._resolve_voice_client(message.guild)
 
-            if not vc or not vc.is_connected():
-                await message.channel.send("🦊 I need to be in a voice channel first! Use `!join`.")
+            if not vc or not getattr(vc, 'is_connected', lambda: False)():
+                await self.safe_send(message.channel, "🦊 I need to be in a voice channel first! Use `!join`.")
                 return
 
             # Only show typing if in a text channel
@@ -419,7 +544,29 @@ class DiscordMCP(discord.Client):
         """
         if guild_id in self.recording_tasks and not self.recording_tasks[guild_id].done():
             print(f"Recording loop already running for guild {guild_id}")
-            return
+            return True
+
+        # Check for discord.sinks availability (some discord.py builds don't include sinks)
+        if not hasattr(discord, 'sinks'):
+            warn_msg = (
+                "Voice recording sinks are not available in your installed discord package.\n"
+                "To enable live transcription, install a discord build with voice sink support. "
+                "For example, upgrade to a voice-enabled discord.py or py-cord build.\n"
+                "Example: pip install -U py-cord\nAlternatively, run the bot without live voice transcription."
+            )
+            print(warn_msg)
+            try:
+                # Try to notify the channel if possible
+                if text_channel and hasattr(text_channel, 'send'):
+                    asyncio.create_task(
+                        text_channel.send(
+                            "🦊 Listening is unavailable: your discord library lacks `sinks`. "
+                            "Install a voice-enabled build (e.g. `pip install -U py-cord`) to enable live transcription."
+                        )
+                    )
+            except Exception:
+                pass
+            return False
 
         self.recording_text_channel[guild_id] = text_channel
 
@@ -428,6 +575,11 @@ class DiscordMCP(discord.Client):
             while voice_client and voice_client.is_connected():
                 try:
                     sink = discord.sinks.WaveSink()
+                    # Mark listening true when the sink is successfully created
+                    try:
+                        self.listening_state[guild_id] = True
+                    except Exception:
+                        pass
                     voice_client.start_recording(sink, self.on_recording_finished, text_channel)
                     # Record for chunk_duration seconds
                     await asyncio.sleep(chunk_duration)
@@ -438,16 +590,40 @@ class DiscordMCP(discord.Client):
                     print(f"Recording loop error for guild {guild_id}: {e}")
                     await asyncio.sleep(2)
             print(f"Transcription loop ending for guild {guild_id}")
+            # Loop ended; clear listening state
+            try:
+                self.listening_state[guild_id] = False
+            except Exception:
+                pass
 
         task = asyncio.create_task(_loop())
         self.recording_tasks[guild_id] = task
+        # mark listening state true
+        try:
+            self.listening_state[guild_id] = True
+        except Exception:
+            pass
+        return True
 
     def stop_transcription_loop(self, guild_id):
         task = self.recording_tasks.get(guild_id)
+        stopped = False
         if task:
-            task.cancel()
+            try:
+                task.cancel()
+            except Exception:
+                pass
             self.recording_tasks.pop(guild_id, None)
             self.recording_text_channel.pop(guild_id, None)
+            stopped = True
+        # mark listening state false
+        try:
+            self.listening_state[guild_id] = False
+        except Exception:
+            pass
+        if stopped:
+            print(f"Stopped transcription loop for guild {guild_id}")
+        return stopped
 
     async def on_recording_finished(self, sink, text_channel):
         """
@@ -541,28 +717,30 @@ class DiscordMCP(discord.Client):
 
 
 
-# Main bot token
-DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
+if __name__ == '__main__':
+    # Main bot token (only used when running as a script)
+    DISCORD_TOKEN = os.getenv('DISCORD_TOKEN')
 
-if not DISCORD_TOKEN:
-    print("Error: DISCORD_TOKEN environment variable is not set.")
-    exit(1)
+    if not DISCORD_TOKEN:
+        print("Error: DISCORD_TOKEN environment variable is not set.")
+        exit(1)
 
-intents = discord.Intents.default()
-intents.message_content = True
-intents.voice_states = True
+    intents = discord.Intents.default()
+    intents.message_content = True
+    intents.voice_states = True
 
-ai_bot = AIchatbot()
-client = DiscordMCP(ai_bot=ai_bot, intents=intents)
-client.run(DISCORD_TOKEN)
-print("DISCORD_TOKEN (first 10 chars):", repr(DISCORD_TOKEN[:10]) if DISCORD_TOKEN else "None")
+    ai_bot = AIchatbot()
+    client = DiscordMCP(ai_bot=ai_bot, intents=intents)
+    client.run(DISCORD_TOKEN)
 
-if not DISCORD_TOKEN or len(DISCORD_TOKEN.strip()) < 10:
-    print("❌ ERROR: DISCORD_TOKEN is missing or invalid. Please check your .env file.")
-    exit(1)
-else:
-    print("✅ Discord token loaded.")
+    print("DISCORD_TOKEN (first 10 chars):", repr(DISCORD_TOKEN[:10]) if DISCORD_TOKEN else "None")
 
-print("Current working directory:", os.getcwd())
-print("Looking for .env in:", os.path.abspath("."))
-print("Does .env exist?", os.path.isfile(".env"))
+    if not DISCORD_TOKEN or len(DISCORD_TOKEN.strip()) < 10:
+        print("❌ ERROR: DISCORD_TOKEN is missing or invalid. Please check your .env file.")
+        exit(1)
+    else:
+        print("✅ Discord token loaded.")
+
+    print("Current working directory:", os.getcwd())
+    print("Looking for .env in:", os.path.abspath("."))
+    print("Does .env exist?", os.path.isfile(".env"))
