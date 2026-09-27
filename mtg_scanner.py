@@ -21,21 +21,21 @@ def get_db():
     return conn
 
 def init_db():
-    if not os.path.exists(DB_PATH):
-        conn = get_db()
-        cur = conn.cursor()
-        cur.execute('''
-        CREATE TABLE collections (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id TEXT NOT NULL,
-            scryfall_id TEXT NOT NULL,
-            name TEXT,
-            image_uri TEXT,
-            added_at TEXT
-        )
-        ''')
-        conn.commit()
-        conn.close()
+  # Always ensure DB exists and the collections table is present.
+  conn = get_db()
+  cur = conn.cursor()
+  cur.execute('''
+  CREATE TABLE IF NOT EXISTS collections (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id TEXT NOT NULL,
+    scryfall_id TEXT NOT NULL,
+    name TEXT,
+    image_uri TEXT,
+    added_at TEXT
+  )
+  ''')
+  conn.commit()
+  conn.close()
 
 init_db()
 app = Flask(__name__)

@@ -1,3 +1,9 @@
+cards.db
+.venv/
+__pycache__/
+*.pyc
+.replit
+/.vscode
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
