@@ -1,0 +1,57 @@
+Training script / instructions (text)
+
+Purpose
+- Produce a `train.jsonl` file for supervised fine-tuning (SFT) or LoRA that preserves and leverages your `persona_examples.txt` to teach the model your voice.
+
+Strategy
+1) Use `train/prepare_dataset.py` to convert chat exports into prompt/completion pairs.
+2) Augment each `prompt` with the contents of `persona_examples.txt` as a short style guide or few-shot exemplar block. This helps small datasets: the model sees explicit examples of your phrasing.
+3) Save the augmented pairs to `train/train_with_persona.jsonl`.
+
+Example Python snippet (conceptual)
+
+import json
+from pathlib import Path
+
+persona_path = Path('persona_examples.txt')
+input_jsonl = Path('train/train.jsonl')
+out_jsonl = Path('train/train_with_persona.jsonl')
+
+persona_text = persona_path.read_text(encoding='utf-8').strip() if persona_path.exists() else ''
+
+with input_jsonl.open('r', encoding='utf-8') as inf, out_jsonl.open('w', encoding='utf-8') as outf:
+    for line in inf:
+        obj = json.loads(line)
+        prompt = obj.get('prompt','')
+        completion = obj.get('completion','')
+        # Prepend persona guide as a short system-like block.
+        if persona_text:
+            augmented_prompt = f"SYSTEM: Follow this style and voice exactly:\n{persona_text}\n\nUSER: {prompt}"
+        else:
+            augmented_prompt = prompt
+        out_obj = {"prompt": augmented_prompt, "completion": completion}
+        outf.write(json.dumps(out_obj, ensure_ascii=False) + "\n")
+
+Notes and tips
+- Keep `completion` as the assistant's reply only. For OpenAI fine-tunes, ensure `completion` ends with a newline.
+- If your `persona_examples.txt` is long, consider extracting only the short examples (50-200 tokens) to avoid overly long prompts.
+- For LoRA / HF training, another approach is to add persona examples as separate training records (prompt: example user message, completion: your exemplar reply).
+
+Commands (example)
+
+# Prepare dataset from an export
+python train/prepare_dataset.py --input path/to/export.json --output train/train.jsonl
+
+# Augment with persona examples (run the snippet above as a script, or manually copy persona text)
+# After that, you'll have train/train_with_persona.jsonl ready for fine-tuning.
+
+Training options
+- OpenAI fine-tune: use `train_with_persona.jsonl` as the training file.
+- Hugging Face + LoRA: use `train_with_persona.jsonl` (or transformed HF dataset) with your LoRA training script.
+
+Safety
+- Verify `train_with_persona.jsonl` contains no PII. Remove or redact entries before uploading to any external API.
+
+If you want, I can:
+- Add a small Python script `train/augment_with_persona.py` that implements the snippet above and runs automatically.
+- Or scaffold a LoRA training script that consumes `train_with_persona.jsonl`.

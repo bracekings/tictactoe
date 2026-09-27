@@ -1,0 +1,3232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Humbly Plural</title>
+    <style>
+        :root {
+            --page-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --body-bg: #f2f4ff;
+            --surface-bg: #eef2ff;
+            --card-bg: #ffffff;
+            --text-color: #222222;
+            --text-secondary: #666666;
+            --border-color: #e0e0e0;
+            --header-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --accent-color: #667eea;
+            --input-bg: #ffffff;
+            --bg-image-opacity: 0;
+            --bg-image-blur: 0px;
+            --bg-overlay: color-mix(in srgb, var(--body-bg) 88%, var(--text-color) 12%);
+            --surface-soft: color-mix(in srgb, var(--card-bg) 92%, var(--text-color) 8%);
+            --shadow-color: rgba(34 34 34 / 0.12);
+            --danger-color: color-mix(in srgb, var(--accent-color) 20%, var(--text-color) 80%);
+            --success-color: color-mix(in srgb, var(--accent-color) 60%, var(--body-bg) 40%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            min-height: 100vh;
+            color: var(--text-color);
+            background: var(--page-bg);
+            margin: 0;
+            padding: 0;
+            position: relative;
+        }
+
+        .background-layer {
+            position: fixed;
+            inset: 0;
+            z-index: -2;
+            background-size: cover;
+            background-position: center;
+            opacity: var(--bg-image-opacity);
+            filter: blur(var(--bg-image-blur));
+            transition: opacity 0.25s ease, filter 0.25s ease;
+        }
+
+        .background-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            pointer-events: none;
+            background: var(--bg-overlay);
+        }
+
+        .container {
+            max-width: 720px;
+            margin: 0 auto;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: transparent;
+            padding-bottom: 100px;
+        }
+
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            background: var(--card-bg);
+            backdrop-filter: blur(14px);
+            color: var(--text-color);
+            padding: 24px 18px 18px;
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: 0 12px 32px var(--shadow-color);
+        }
+
+        .header h1 {
+            font-size: 26px;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+            line-height: 1.6;
+        }
+
+        .header-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .profile-info,
+        .header-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .profile-info span {
+            font-size: 12px;
+            opacity: 0.85;
+        }
+
+        .profile-info strong {
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .theme-select {
+            min-width: 140px;
+            border-radius: 14px;
+            border: 1px solid var(--border-color);
+            background: var(--input-bg);
+            color: var(--text-color);
+            padding: 10px 14px;
+            font-size: 14px;
+        }
+
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 22px;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 25;
+            background: var(--card-bg);
+            border-top: 1px solid var(--border-color);
+            box-shadow: 0 -6px 30px var(--shadow-color);
+        }
+
+        .tabs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        }
+
+        .tab-btn {
+            padding: 16px 0;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            transition: color 0.2s ease, background 0.2s ease;
+        }
+
+        .tab-btn.active {
+            color: var(--accent-color);
+            background: color-mix(in srgb, var(--accent-color) 12%, var(--body-bg) 88%);
+        }
+
+        .tab-btn:hover {
+            background: color-mix(in srgb, var(--accent-color) 8%, var(--body-bg) 92%);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .section {
+            margin-bottom: 0;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 14px;
+            color: var(--text-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .section-description {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 14px;
+            line-height: 1.6;
+        }
+
+        .btn {
+            background: var(--accent-color);
+            color: var(--card-bg);
+            border: none;
+            padding: 12px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background 0.3s ease, transform 0.2s ease;
+        }
+
+        .btn:hover {
+            background: color-mix(in srgb, var(--accent-color) 85%, var(--body-bg) 15%);
+            transform: translateY(-1px);
+        }
+
+        .btn-small {
+            padding: 9px 13px;
+            font-size: 12px;
+        }
+
+        .btn-danger {
+            background: var(--danger-color);
+        }
+
+        .btn-danger:hover {
+            background: color-mix(in srgb, var(--danger-color) 80%, var(--body-bg) 20%);
+        }
+
+        .btn-success {
+            background: var(--success-color);
+        }
+
+        .btn-success:hover {
+            background: color-mix(in srgb, var(--success-color) 80%, var(--body-bg) 20%);
+        }
+
+        .input-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--text-secondary);
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            font-family: inherit;
+            font-size: 14px;
+            background: var(--input-bg);
+            color: var(--text-color);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 90px;
+            line-height: 1.6;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-color) 10%, var(--body-bg) 90%);
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 12px 28px var(--shadow-color);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 14px 32px var(--shadow-color);
+        }
+
+        .member-card {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+            padding: 18px;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            background: var(--card-bg);
+            cursor: pointer;
+            transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .member-card:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 14px 30px var(--shadow-color);
+            border-color: color-mix(in srgb, var(--accent-color) 15%, var(--border-color) 85%);
+        }
+
+        .member-card-avatar {
+            width: 64px;
+            height: 64px;
+            border-radius: 18px;
+            overflow: hidden;
+            background: var(--surface-soft);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            position: relative;
+            border: 2px solid transparent;
+        }
+
+        .member-card-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .member-card-avatar .avatar-initials {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--accent-color);
+        }
+
+        .member-card-details {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .member-card-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-color);
+            margin-bottom: 4px;
+        }
+
+        .member-card-meta {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .member-color-swatch {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 0 0 2px var(--card-bg);
+            margin-right: 8px;
+        }
+
+        .member-meta-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .avatar-preview {
+            width: 84px;
+            height: 84px;
+            border-radius: 18px;
+            background: var(--surface-soft);
+            border: 1px dashed var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .avatar-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .card-title {
+            font-weight: 700;
+            color: var(--text-color);
+        }
+
+        .card-subtitle {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 6px;
+        }
+
+        .card-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+
+        .member-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(34 34 34 / 0.35);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 18px;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            padding: 24px;
+            border-radius: 22px;
+            max-width: 560px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 16px 40px var(--shadow-color);
+        }
+
+        .modal-header {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--text-color);
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .empty-message {
+            text-align: center;
+            color: var(--text-secondary);
+            padding: 30px 20px;
+            font-size: 14px;
+        }
+
+        .fronting-top-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 22px;
+            padding: 20px;
+            margin-bottom: 18px;
+            box-shadow: 0 12px 30px var(--shadow-color);
+        }
+
+        .fronting-header {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: flex-start;
+            margin-bottom: 18px;
+        }
+
+        .front-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .front-status-text {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-color);
+            line-height: 1.3;
+        }
+
+        .front-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: color-mix(in srgb, var(--accent-color) 18%, var(--body-bg) 82%);
+            color: var(--accent-color);
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .front-avatar-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .front-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 18px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--surface-soft);
+            border: 1px solid var(--border-color);
+        }
+
+        .front-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .front-avatar .avatar-initials {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--accent-color);
+        }
+
+        .front-timer {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-color);
+            margin-top: 10px;
+        }
+
+        .switch-active {
+            display: none;
+        }
+
+        .action-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .member-pill-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            align-items: start;
+        }
+
+        .member-pill {
+            width: 100%;
+            text-align: left;
+            border: 1px solid var(--border-color);
+            border-radius: 18px;
+            background: var(--surface-bg);
+            color: var(--text-color);
+            padding: 14px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            cursor: pointer;
+            transition: background 0.2s ease, border-color 0.2s ease;
+        }
+
+        .member-pill.selected {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-color) 12%, var(--body-bg) 88%);
+        }
+
+        .member-pill:hover {
+            background: var(--surface-soft);
+        }
+
+        .member-pill-avatar {
+            width: 42px;
+            height: 42px;
+            min-width: 42px;
+            border-radius: 14px;
+            background: var(--surface-soft);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .message-thread {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .message-group {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .message-group.outgoing {
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            min-width: 40px;
+            border-radius: 50%;
+            border: 1px solid var(--border-color);
+            background: var(--surface-soft);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .message-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .message-bubble {
+            max-width: 100%;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 18px;
+            padding: 14px;
+            box-shadow: 0 14px 32px var(--shadow-color);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .message-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-color);
+        }
+
+        .message-text {
+            font-size: 14px;
+            line-height: 1.7;
+            color: var(--text-color);
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .message-time {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .timeline-entry {
+            margin-bottom: 14px;
+        }
+
+        .timeline-content {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 18px;
+            padding: 18px;
+            box-shadow: 0 12px 30px var(--shadow-color);
+        }
+
+        .timeline-header {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 10px;
+            align-items: flex-start;
+        }
+
+        .timeline-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-color);
+        }
+
+        .timeline-time {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .timeline-body {
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .profile-hero {
+            display: grid;
+            gap: 18px;
+            grid-template-columns: 96px auto;
+            align-items: start;
+        }
+
+        .profile-avatar {
+            width: 96px;
+            height: 96px;
+            border-radius: 24px;
+            border: 1px solid var(--border-color);
+            background: var(--surface-soft);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-name {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-color);
+            margin-bottom: 8px;
+        }
+
+        .profile-meta {
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+
+        .profile-bio {
+            color: var(--text-secondary);
+            line-height: 1.65;
+        }
+
+        .profile-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 14px;
+        }
+
+        .home-hero {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            align-items: center;
+            padding: 24px;
+        }
+
+        .home-hero h2 {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .home-hero-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .home-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+        }
+
+        .home-summary-card {
+            background: var(--surface-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 18px;
+            box-shadow: 0 12px 30px var(--shadow-color);
+        }
+
+        .summary-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.09em;
+            margin-bottom: 8px;
+        }
+
+        .summary-number {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-color);
+        }
+
+        .history-grid {
+            display: grid;
+            gap: 16px;
+        }
+
+        .history-timeline {
+            position: relative;
+            border-radius: 28px;
+            background: rgba(14, 24, 42, 0.22);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            overflow: hidden;
+            padding-left: 108px;
+            padding-right: 22px;
+            padding-top: 20px;
+            padding-bottom: 20px;
+            min-height: 520px;
+        }
+
+        .history-timeline-grid {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+        }
+
+        .history-timeline-grid::before {
+            content: '';
+            position: absolute;
+            left: 48px;
+            top: 20px;
+            bottom: 20px;
+            width: 2px;
+            background: rgba(255, 255, 255, 0.16);
+            pointer-events: none;
+        }
+
+        .timeline-marker {
+            position: absolute;
+            left: 0;
+            right: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .marker-label {
+            width: 60px;
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-align: right;
+            padding-right: 10px;
+            white-space: nowrap;
+        }
+
+        .marker-label.muted {
+            color: rgba(255,255,255,0.38);
+        }
+
+        .marker-line {
+            flex: 1;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .timeline-date-label {
+            position: absolute;
+            left: 76px;
+            font-size: 12px;
+            color: rgba(255,255,255,0.82);
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 14px;
+            background: rgba(255,255,255,0.06);
+            transform: translateY(-12px);
+        }
+
+        .timeline-pill {
+            position: absolute;
+            left: 78px;
+            width: calc(100% - 100px);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 10;
+        }
+
+        .timeline-pill-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            border: 2px solid var(--card-bg);
+            background: var(--card-bg);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 14px 40px rgba(11, 22, 55, 0.14);
+            position: absolute;
+            top: -28px;
+            left: 0;
+            padding: 0;
+            z-index: 15;
+        }
+
+        .timeline-pill-avatars {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pill-avatar-dot {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 2px solid var(--card-bg);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--surface-soft);
+        }
+
+        .pill-avatar-dot img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .pill-avatar-dot span {
+            display: block;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-color);
+        }
+
+        .timeline-pill-body {
+            position: relative;
+            border-radius: 28px;
+            min-height: 24px;
+            padding: 16px 18px 18px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            gap: 8px;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08), 0 18px 44px rgba(9, 22, 48, 0.18);
+            color: #fff;
+            overflow: hidden;
+        }
+
+        .pill-label {
+            font-size: 14px;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        .pill-duration {
+            font-size: 12px;
+            color: rgba(255,255,255,0.88);
+        }
+
+        .pill-live-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+            color: #d2fde0;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .pill-live-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #52d869;
+            box-shadow: 0 0 0 4px rgba(82,216,105,0.22);
+        }
+
+        .history-info-card {
+            position: fixed;
+            z-index: 50;
+            min-width: 280px;
+            max-width: 320px;
+            width: min(320px, calc(100vw - 24px));
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            box-shadow: 0 24px 60px rgba(10, 22, 48, 0.22);
+            padding: 18px 18px 16px;
+        }
+
+        .history-info-card.hidden {
+            display: none;
+        }
+
+        .history-info-card-header {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .history-info-card-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-color);
+        }
+
+        .history-info-card-close {
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 18px;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .history-info-row {
+            display: grid;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .history-info-row span {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .history-info-value {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-color);
+            line-height: 1.4;
+        }
+
+        .history-info-note {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            background: color-mix(in srgb, var(--surface-bg) 80%, var(--text-color) 20%);
+            border-radius: 16px;
+            padding: 12px;
+        }
+
+        .history-info-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .history-info-actions .btn {
+            flex: 1;
+        }
+
+        .history-card {
+            background: var(--surface-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 18px;
+            box-shadow: 0 12px 30px var(--shadow-color);
+        }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .history-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .history-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .history-value {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-color);
+        }
+
+        .history-event {
+            padding: 18px;
+            border-radius: 20px;
+            background: var(--surface-bg);
+            border: 1px solid var(--border-color);
+            margin-bottom: 14px;
+            box-shadow: 0 12px 30px var(--shadow-color);
+        }
+
+        .switch-entry {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .switch-title {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            align-items: flex-start;
+            font-weight: 700;
+            color: var(--text-color);
+        }
+
+        .switch-text {
+            color: var(--text-secondary);
+            line-height: 1.65;
+        }
+
+        .theme-builder {
+            display: grid;
+            gap: 18px;
+        }
+
+        .theme-builder-panels {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+
+        .theme-builder-panel {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 12px 30px var(--shadow-color);
+        }
+
+        .theme-list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            background: var(--surface-soft);
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+
+        .theme-list-item.active {
+            border-color: var(--accent-color);
+            background: color-mix(in srgb, var(--accent-color) 10%, var(--surface-soft) 90%);
+        }
+
+        .theme-list-item button {
+            min-width: auto;
+        }
+
+        .theme-preview {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .theme-preview span {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .theme-preview-swatch {
+            min-height: 40px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .background-settings {
+            display: grid;
+            gap: 12px;
+        }
+
+        .background-preview {
+            min-height: 120px;
+            background: var(--surface-soft);
+            border-radius: 18px;
+            border: 1px solid var(--border-color);
+        }
+
+        @media (max-width: 720px) {
+            .container {
+                padding-bottom: 120px;
+            }
+
+            .home-hero {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .tabs {
+                grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+            }
+
+            .history-grid,
+            .theme-builder-panels {
+                grid-template-columns: 1fr;
+            }
+
+            .profile-hero {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="background-layer" id="backgroundLayer"></div>
+    <div class="background-overlay"></div>
+    <div class="container">
+        <div class="header">
+            <h1>Humbly Plural</h1>
+            <p>Private plural system manager</p>
+            <div class="header-actions">
+                <div class="profile-info">
+                    <span>Current Profile:</span>
+                    <strong id="activeProfileName">Loading...</strong>
+                </div>
+                <div class="header-controls">
+                    <select id="themeSelect" class="theme-select" onchange="setTheme(this.value)"></select>
+                    <button class="btn btn-small" onclick="openProfileModal()">Profiles</button>
+                    <button class="btn btn-small" onclick="openExportModal()">Export</button>
+                    <button class="btn btn-small" onclick="openImportModal()">Import</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="tab-content active" id="home">
+                <div class="home-hero card">
+                    <div>
+                        <div class="section-label">Home</div>
+                        <h2>Welcome back, <span id="homeProfileName">Loading...</span></h2>
+                        <p>Track system members, fronting, journal entries, and conversations in one private space.</p>
+                    </div>
+                    <div class="home-hero-actions">
+                        <button class="btn btn-small" onclick="openAddMemberModal()">Add Member</button>
+                        <button class="btn btn-small" onclick="openAddNoteModal()">New Journal</button>
+                    </div>
+                </div>
+
+                <div class="home-summary-grid">
+                    <div class="home-summary-card">
+                        <div class="summary-label">Members</div>
+                        <div class="summary-number" id="homeMemberCount">0</div>
+                    </div>
+                    <div class="home-summary-card">
+                        <div class="summary-label">Active Fronters</div>
+                        <div class="summary-number" id="homeFronterCount">0</div>
+                    </div>
+                    <div class="home-summary-card">
+                        <div class="summary-label">Journal</div>
+                        <div class="summary-number" id="homeJournalCount">0</div>
+                    </div>
+                    <div class="home-summary-card">
+                        <div class="summary-label">Messages</div>
+                        <div class="summary-number" id="homeMessageCount">0</div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">
+                        Recent activity
+                        <button class="btn btn-small" onclick="switchTab('stats')">View stats</button>
+                    </div>
+                    <div id="homeActivityFeed" class="activity-feed"></div>
+                </div>
+            </div>
+
+            <div class="tab-content" id="members">
+                <div class="section-title">Members</div>
+                <div class="section-description">Tap a profile card to explore personal details.</div>
+                <div id="membersList" class="members-grid"></div>
+            </div>
+
+            <div class="tab-content" id="fronting">
+                <div class="section-title">Fronting</div>
+                <div class="fronting-top-card">
+                    <div class="fronting-header">
+                        <div>
+                            <div class="front-label">Current Front</div>
+                            <div class="front-status-text" id="frontStatus">No one currently marked as fronting</div>
+                        </div>
+                        <div class="front-badge" id="frontBadge">Idle</div>
+                    </div>
+                    <div class="front-avatar-row" id="frontAvatars"></div>
+                    <div class="front-timer" id="frontTimer">00:00</div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Pick fronters</div>
+                    <div id="membersList2" class="member-pill-list"></div>
+                </div>
+
+                <div class="input-group">
+                    <label>Switch notes</label>
+                    <textarea id="switchNotes" placeholder="Add notes for this switch..."></textarea>
+                </div>
+
+                <div class="action-row">
+                    <button class="btn btn-success" onclick="startSwitch()">Start Switch</button>
+                    <button class="btn btn-danger" onclick="endSwitch()" id="endSwitchBtn" style="display: none;">End Switch</button>
+                </div>
+                <div class="section-description">Review full switch history and fronting statistics on the History tab.</div>
+            </div>
+
+            <div class="tab-content" id="history">
+                <div class="section-title">History</div>
+                <div class="section-description">Track switch duration, member activity, and current fronting insights.</div>
+                <div id="historyStats" class="history-grid"></div>
+                <div id="historyTimeline" class="history-timeline"></div>
+                <div id="historyInfoCard" class="history-info-card hidden"></div>
+            </div>
+
+            <div class="tab-content" id="journal">
+                <div class="section-title">Journal Timeline</div>
+                <div class="section-description">Your notes flow in a timeline-style feed.</div>
+                <div id="notesList" class="timeline-list"></div>
+            </div>
+
+            <div class="tab-content" id="messages">
+                <div class="section-title">Messages</div>
+                <div class="chat-panel">
+                    <div id="messagesList" class="message-thread"></div>
+                    <div class="chat-input-panel">
+                        <div class="input-group">
+                            <label>Sender</label>
+                            <select id="messageSender"></select>
+                        </div>
+                        <div class="input-group">
+                            <label>Message</label>
+                            <textarea id="messageText" placeholder="Write a message for the system..."></textarea>
+                        </div>
+                        <div class="chat-actions">
+                            <button class="btn btn-success" onclick="sendMessage()">Send</button>
+                            <button class="btn btn-small btn-danger" onclick="clearMessages()">Clear</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-content" id="themes">
+                <div class="section-title">Theme Builder</div>
+                <div class="section-description">Create, rename, and edit themes with native color controls and optional background image settings.</div>
+                <div class="theme-builder">
+                    <div class="theme-builder-panels">
+                        <div class="theme-builder-panel">
+                            <div class="section-title">Themes</div>
+                            <div id="themeBuilderList"></div>
+                            <button class="btn btn-small" onclick="prepareNewTheme()">New Theme</button>
+                        </div>
+                        <div class="theme-builder-panel">
+                            <div class="input-group">
+                                <label>Theme Name</label>
+                                <input type="text" id="themeName" placeholder="Theme label">
+                            </div>
+                            <div class="input-group">
+                                <label>Page background</label>
+                                <input type="color" id="themePageBg">
+                            </div>
+                            <div class="input-group">
+                                <label>Surface color</label>
+                                <input type="color" id="themeSurfaceBg">
+                            </div>
+                            <div class="input-group">
+                                <label>Card color</label>
+                                <input type="color" id="themeCardBg">
+                            </div>
+                            <div class="input-group">
+                                <label>Text color</label>
+                                <input type="color" id="themeTextColor">
+                            </div>
+                            <div class="input-group">
+                                <label>Secondary text color</label>
+                                <input type="color" id="themeTextSecondary">
+                            </div>
+                            <div class="input-group">
+                                <label>Border color</label>
+                                <input type="color" id="themeBorderColor">
+                            </div>
+                            <div class="input-group">
+                                <label>Accent color</label>
+                                <input type="color" id="themeAccentColor">
+                            </div>
+                            <div class="background-settings">
+                                <label>Background image</label>
+                                <input type="file" id="themeBgImage" accept="image/*" onchange="handleThemeBgUpload(event)">
+                                <div>
+                                    <label>Opacity <span id="bgOpacityLabel">0.28</span></label>
+                                    <input type="range" id="bgOpacity" min="0" max="1" step="0.05" value="0.28" oninput="updateBgPreviewLabel()">
+                                </div>
+                                <div>
+                                    <label>Blur <span id="bgBlurLabel">10px</span></label>
+                                    <input type="range" id="bgBlur" min="0" max="30" step="1" value="10" oninput="updateBgPreviewLabel()">
+                                </div>
+                                <div class="background-preview" id="themeBgPreview"></div>
+                            </div>
+                            <div class="card-buttons" style="justify-content: flex-end; margin-top: 10px;">
+                                <button class="btn" onclick="resetThemeEditor()">Reset</button>
+                                <button class="btn btn-success" onclick="saveTheme()">Save Theme</button>
+                                <button class="btn btn-danger" onclick="deleteTheme(app.editingThemeId)">Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-content" id="memberProfilePage">
+                <div class="section">
+                    <button class="btn btn-small" onclick="closeMemberProfilePage()">← Back</button>
+                </div>
+                <div class="profile-hero card">
+                    <div class="profile-avatar" id="profilePageAvatar"></div>
+                    <div class="profile-details">
+                        <div class="profile-name" id="profilePageName"></div>
+                        <div class="profile-meta" id="profilePageMeta"></div>
+                        <div class="profile-bio" id="profilePageBio"></div>
+                        <div class="profile-actions">
+                            <button class="btn btn-small" onclick="editMember(app.editingMemberId)">Edit</button>
+                            <button class="btn btn-small btn-danger" onclick="deleteMember(app.editingMemberId)">Delete</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-content" id="stats">
+                <div class="section-title">System Statistics</div>
+                <div id="statsContent" class="stats-grid"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="home">Home</button>
+            <button class="tab-btn" data-tab="members">Members</button>
+            <button class="tab-btn" data-tab="fronting">Fronting</button>
+            <button class="tab-btn" data-tab="history">History</button>
+            <button class="tab-btn" data-tab="journal">Journal</button>
+            <button class="tab-btn" data-tab="messages">Messages</button>
+            <button class="tab-btn" data-tab="themes">Themes</button>
+        </div>
+    </div>
+
+    <div class="fab-container">
+        <button id="addMemberFab" class="fab hidden" onclick="openAddMemberModal()">+</button>
+        <button id="newNoteFab" class="fab hidden" onclick="openAddNoteModal()">+</button>
+    </div>
+
+    <div class="modal" id="memberModal">
+        <div class="modal-content">
+            <div class="modal-header" id="memberModalTitle">Member Profile</div>
+
+            <div id="memberViewSection" class="modal-section">
+                <div class="member-card" style="cursor: default; box-shadow: none; border-color: rgba(34, 34, 34, 0.08);">
+                    <div class="member-card-avatar" id="memberViewAvatar" style="border-color: #667eea; background: #eef2ff;"></div>
+                    <div class="member-card-details">
+                        <div class="member-card-name" id="memberViewName"></div>
+                        <div class="member-meta-row">
+                            <span class="member-color-swatch" id="memberViewColor" style="background: #667eea;"></span>
+                            <span class="member-card-meta" id="memberViewMeta"></span>
+                        </div>
+                        <div class="member-card-meta" id="memberViewDesc" style="margin-top: 10px;"></div>
+                    </div>
+                </div>
+                <div class="modal-buttons" style="justify-content: space-between; gap: 12px; margin-top: 20px;">
+                    <button class="btn" onclick="closeMemberModal()">Close</button>
+                    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                        <button class="btn btn-small" onclick="editMember(app.editingMemberId)">Edit</button>
+                        <button class="btn btn-small btn-danger" onclick="deleteMember(app.editingMemberId)">Delete</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="memberFormSection" class="modal-section hidden">
+                <div class="input-group">
+                    <label>Name *</label>
+                    <input type="text" id="memberName" placeholder="Member name">
+                </div>
+                <div class="input-group">
+                    <label>Pronouns</label>
+                    <input type="text" id="memberPronouns" placeholder="e.g. they/them">
+                </div>
+                <div class="input-group">
+                    <label>Role</label>
+                    <input type="text" id="memberRole" placeholder="e.g. protector, caretaker">
+                </div>
+                <div class="input-group">
+                    <label>Description</label>
+                    <textarea id="memberDesc" placeholder="Notes about this member..."></textarea>
+                </div>
+                <div class="input-group">
+                    <label>Profile Image URL</label>
+                    <input type="text" id="memberAvatar" placeholder="https://example.com/avatar.jpg">
+                </div>
+                <div class="input-group">
+                    <label>Upload Image</label>
+                    <input type="file" id="memberAvatarFile" accept="image/*" onchange="handleAvatarFileSelection(event)">
+                    <div class="avatar-preview" id="avatarPreview">Preview</div>
+                </div>
+                <div class="input-group">
+                    <label>Member Color</label>
+                    <input type="color" id="memberColor" value="#667eea">
+                </div>
+                <div class="modal-buttons" style="justify-content: flex-end;">
+                    <button class="btn" onclick="closeMemberModal()">Cancel</button>
+                    <button class="btn btn-success" onclick="saveMember()">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="noteModal">
+        <div class="modal-content">
+            <div class="modal-header" id="noteModalTitle">New Note</div>
+            <div class="input-group">
+                <label>Title *</label>
+                <input type="text" id="noteTitle" placeholder="Note title">
+            </div>
+            <div class="input-group">
+                <label>Content</label>
+                <textarea id="noteContent" placeholder="Write your note..."></textarea>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn" onclick="closeNoteModal()">Cancel</button>
+                <button class="btn btn-success" onclick="saveNote()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="profileModal">
+        <div class="modal-content">
+            <div class="modal-header">Profiles</div>
+            <div class="input-group">
+                <label>Existing Profiles</label>
+                <div id="profileList"></div>
+            </div>
+            <div class="input-group">
+                <label>New Profile Name</label>
+                <input type="text" id="newProfileName" placeholder="Profile label">
+            </div>
+            <div class="modal-buttons">
+                <button class="btn" onclick="closeProfileModal()">Close</button>
+                <button class="btn btn-success" onclick="createProfile()">Create Profile</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="exportModal">
+        <div class="modal-content">
+            <div class="modal-header">Export Profile</div>
+            <div class="input-group">
+                <label>Copy this profile data to another device</label>
+                <textarea id="exportData" readonly style="height: 160px;"></textarea>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn" onclick="closeExportModal()">Close</button>
+                <button class="btn btn-success" onclick="copyExportData()">Copy</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="importModal">
+        <div class="modal-content">
+            <div class="modal-header">Import Profile</div>
+            <div class="input-group">
+                <label>Paste profile data from another device</label>
+                <textarea id="importData" placeholder="Paste profile JSON here..." style="height: 160px;"></textarea>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn" onclick="closeImportModal()">Close</button>
+                <button class="btn btn-success" onclick="importProfile()">Import</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const defaultThemes = {
+            default: {
+                id: 'default',
+                name: 'Default',
+                pageBg: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                bodyBg: '#f2f4ff',
+                surfaceBg: '#eef2ff',
+                cardBg: '#ffffff',
+                textColor: '#222222',
+                textSecondary: '#666666',
+                borderColor: '#e0e0e0',
+                headerBg: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                accentColor: '#667eea',
+                inputBg: '#ffffff',
+                backgroundOpacity: 0,
+                backgroundBlur: 0,
+                backgroundImage: ''
+            },
+            dark: {
+                id: 'dark',
+                name: 'Dark',
+                pageBg: '#101014',
+                bodyBg: '#171720',
+                surfaceBg: '#1f202a',
+                cardBg: '#20202a',
+                textColor: '#f1f1f5',
+                textSecondary: '#b3b3c1',
+                borderColor: '#2c2c3c',
+                headerBg: 'linear-gradient(135deg, #2f2f4a 0%, #3f3f6a 100%)',
+                accentColor: '#8a84ff',
+                inputBg: '#23232f',
+                backgroundOpacity: 0,
+                backgroundBlur: 0,
+                backgroundImage: ''
+            },
+            light: {
+                id: 'light',
+                name: 'Light',
+                pageBg: '#e8f0ff',
+                bodyBg: '#f8fbff',
+                surfaceBg: '#ffffff',
+                cardBg: '#ffffff',
+                textColor: '#1f2937',
+                textSecondary: '#5b6770',
+                borderColor: '#d9e3f0',
+                headerBg: 'linear-gradient(135deg, #78c7ff 0%, #6d98ff 100%)',
+                accentColor: '#2b6cb0',
+                inputBg: '#ffffff',
+                backgroundOpacity: 0,
+                backgroundBlur: 0,
+                backgroundImage: ''
+            },
+            forest: {
+                id: 'forest',
+                name: 'Forest',
+                pageBg: '#152b18',
+                bodyBg: '#1f352b',
+                surfaceBg: '#253a2d',
+                cardBg: '#253a2d',
+                textColor: '#eaf4e0',
+                textSecondary: '#a4b9a1',
+                borderColor: '#33453a',
+                headerBg: 'linear-gradient(135deg, #2a5f3d 0%, #487855 100%)',
+                accentColor: '#6caa6d',
+                inputBg: '#26372d',
+                backgroundOpacity: 0,
+                backgroundBlur: 0,
+                backgroundImage: ''
+            }
+        };
+
+        function parseHexColor(hex) {
+            const normalized = hex.trim();
+            const short = /^#([a-fA-F0-9])([a-fA-F0-9])([a-fA-F0-9])$/;
+            const full = /^#([a-fA-F0-9]{6})$/;
+            if (short.test(normalized)) {
+                const [, r, g, b] = normalized.match(short);
+                return [parseInt(r + r, 16), parseInt(g + g, 16), parseInt(b + b, 16)];
+            }
+            if (full.test(normalized)) {
+                const [, hexCode] = normalized.match(full);
+                return [
+                    parseInt(hexCode.slice(0, 2), 16),
+                    parseInt(hexCode.slice(2, 4), 16),
+                    parseInt(hexCode.slice(4, 6), 16)
+                ];
+            }
+            return [0, 0, 0];
+        }
+
+        function luminance([r, g, b]) {
+            const values = [r, g, b].map(value => {
+                const channel = value / 255;
+                return channel <= 0.03928 ? channel / 12.92 : Math.pow((channel + 0.055) / 1.055, 2.4);
+            });
+            return 0.2126 * values[0] + 0.7152 * values[1] + 0.0722 * values[2];
+        }
+
+        function contrastRatio(colorA, colorB) {
+            const lumA = luminance(parseHexColor(colorA));
+            const lumB = luminance(parseHexColor(colorB));
+            const brighter = Math.max(lumA, lumB);
+            const darker = Math.min(lumA, lumB);
+            return (brighter + 0.05) / (darker + 0.05);
+        }
+
+        function createThemeId(name) {
+            const slug = name.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-_]/g, '');
+            return slug || `theme-${Date.now()}`;
+        }
+
+        function loadThemeStore() {
+            const saved = localStorage.getItem('hp_customThemes');
+            app.customThemes = saved ? JSON.parse(saved) : [];
+            app.themes = Object.assign({}, defaultThemes);
+            app.customThemes.forEach(theme => {
+                if (theme.id) {
+                    app.themes[theme.id] = theme;
+                }
+            });
+            app.themeKeys = Object.keys(app.themes);
+        }
+
+        function saveThemeStore() {
+            localStorage.setItem('hp_customThemes', JSON.stringify(app.customThemes));
+        }
+
+        function validateTheme(theme) {
+            if (contrastRatio(theme.textColor, theme.bodyBg) < 4.5) {
+                return false;
+            }
+            if (contrastRatio(theme.textColor, theme.cardBg) < 4.5) {
+                return false;
+            }
+            if (contrastRatio(theme.textSecondary, theme.cardBg) < 3) {
+                return false;
+            }
+            return true;
+        }
+
+        function applyTheme(themeName) {
+            if (!app.themes) {
+                loadThemeStore();
+            }
+            const theme = app.themes[themeName] || app.themes.default;
+            const root = document.documentElement;
+            root.style.setProperty('--page-bg', theme.pageBg);
+            root.style.setProperty('--body-bg', theme.bodyBg);
+            root.style.setProperty('--surface-bg', theme.surfaceBg || theme.cardBg);
+            root.style.setProperty('--card-bg', theme.cardBg);
+            root.style.setProperty('--text-color', theme.textColor);
+            root.style.setProperty('--text-secondary', theme.textSecondary);
+            root.style.setProperty('--border-color', theme.borderColor);
+            root.style.setProperty('--header-bg', theme.headerBg);
+            root.style.setProperty('--accent-color', theme.accentColor);
+            root.style.setProperty('--input-bg', theme.inputBg || theme.surfaceBg || theme.cardBg);
+            localStorage.setItem('hp_theme', themeName);
+            document.getElementById('themeSelect').value = themeName;
+            app.activeThemeId = themeName;
+            const backgroundLayer = document.getElementById('backgroundLayer');
+            if (theme.backgroundImage) {
+                backgroundLayer.style.backgroundImage = `url("${theme.backgroundImage}")`;
+                backgroundLayer.style.opacity = theme.backgroundOpacity ?? 0.28;
+                backgroundLayer.style.filter = `blur(${theme.backgroundBlur ?? 10}px)`;
+            } else {
+                backgroundLayer.style.backgroundImage = 'none';
+                backgroundLayer.style.opacity = 0;
+                backgroundLayer.style.filter = 'blur(0px)';
+            }
+            renderThemeBuilder();
+        }
+
+        function renderThemeOptions() {
+            const select = document.getElementById('themeSelect');
+            if (!app.themes) {
+                loadThemeStore();
+            }
+            select.innerHTML = app.themeKeys.map(key => {
+                const theme = app.themes[key];
+                return `<option value="${key}">${theme.name}</option>`;
+            }).join('');
+        }
+
+        function renderFloatingActions(tabName) {
+            const addMemberFab = document.getElementById('addMemberFab');
+            const newNoteFab = document.getElementById('newNoteFab');
+            addMemberFab.classList.toggle('hidden', tabName !== 'members' && tabName !== 'home');
+            newNoteFab.classList.toggle('hidden', tabName !== 'journal' && tabName !== 'home');
+        }
+
+        function renderThemeBuilder() {
+            const container = document.getElementById('themeBuilderList');
+            if (!app.themes) {
+                loadThemeStore();
+            }
+            container.innerHTML = app.themeKeys.map(key => {
+                const theme = app.themes[key];
+                const activeClass = key === app.activeThemeId ? 'active' : '';
+                const isCustom = app.customThemes.some(t => t.id === key);
+                const deleteButton = isCustom
+                    ? `<button class="btn btn-small btn-danger" onclick="event.stopPropagation(); deleteTheme('${key}')">Delete</button>`
+                    : '';
+                return `
+                    <div class="theme-list-item ${activeClass}" onclick="loadThemeToEditor('${key}')">
+                        <span>${theme.name}</span>
+                        <div>${deleteButton}</div>
+                    </div>
+                `;
+            }).join('');
+            if (!app.themeKeys.length) {
+                container.innerHTML = '<div class="empty-message">No themes available.</div>';
+            }
+        }
+
+        function loadThemeToEditor(themeId) {
+            if (!app.themes) {
+                loadThemeStore();
+            }
+            const theme = app.themes[themeId] || app.themes.default;
+            app.editingThemeId = themeId;
+            document.getElementById('themeName').value = theme.name;
+            document.getElementById('themePageBg').value = theme.pageBg.startsWith('#') ? theme.pageBg : theme.bodyBg;
+            document.getElementById('themeSurfaceBg').value = theme.surfaceBg || theme.cardBg;
+            document.getElementById('themeCardBg').value = theme.cardBg;
+            document.getElementById('themeTextColor').value = theme.textColor;
+            document.getElementById('themeTextSecondary').value = theme.textSecondary;
+            document.getElementById('themeBorderColor').value = theme.borderColor;
+            document.getElementById('themeAccentColor').value = theme.accentColor;
+            document.getElementById('bgOpacity').value = theme.backgroundOpacity ?? 0.28;
+            document.getElementById('bgBlur').value = theme.backgroundBlur ?? 10;
+            app.editedThemeBackground = theme.backgroundImage || '';
+            updateBgPreviewLabel();
+        }
+
+        function prepareNewTheme() {
+            app.editingThemeId = null;
+            document.getElementById('themeName').value = 'New Theme';
+            document.getElementById('themePageBg').value = '#f2f4ff';
+            document.getElementById('themeSurfaceBg').value = '#eef2ff';
+            document.getElementById('themeCardBg').value = '#ffffff';
+            document.getElementById('themeTextColor').value = '#222222';
+            document.getElementById('themeTextSecondary').value = '#666666';
+            document.getElementById('themeBorderColor').value = '#e0e0e0';
+            document.getElementById('themeAccentColor').value = '#667eea';
+            document.getElementById('bgOpacity').value = 0.28;
+            document.getElementById('bgBlur').value = 10;
+            app.editedThemeBackground = '';
+            updateBgPreviewLabel();
+        }
+
+        function resetThemeEditor() {
+            if (app.editingThemeId) {
+                loadThemeToEditor(app.editingThemeId);
+            } else {
+                prepareNewTheme();
+            }
+        }
+
+        function saveTheme() {
+            const name = document.getElementById('themeName').value.trim();
+            if (!name) {
+                alert('A theme name is required.');
+                return;
+            }
+            const theme = {
+                name,
+                pageBg: document.getElementById('themePageBg').value,
+                bodyBg: document.getElementById('themePageBg').value,
+                surfaceBg: document.getElementById('themeSurfaceBg').value,
+                cardBg: document.getElementById('themeCardBg').value,
+                textColor: document.getElementById('themeTextColor').value,
+                textSecondary: document.getElementById('themeTextSecondary').value,
+                borderColor: document.getElementById('themeBorderColor').value,
+                accentColor: document.getElementById('themeAccentColor').value,
+                inputBg: document.getElementById('themeCardBg').value,
+                headerBg: document.getElementById('themePageBg').value,
+                backgroundImage: app.editedThemeBackground || '',
+                backgroundOpacity: Number(document.getElementById('bgOpacity').value),
+                backgroundBlur: Number(document.getElementById('bgBlur').value)
+            };
+            if (!validateTheme(theme)) {
+                alert('Adjust your colors so text remains readable against backgrounds.');
+                return;
+            }
+            const themeId = createThemeId(name);
+            theme.id = themeId;
+            const existingIndex = app.customThemes.findIndex(t => t.id === app.editingThemeId);
+            if (existingIndex > -1) {
+                app.customThemes[existingIndex] = Object.assign({ id: app.editingThemeId }, theme);
+            } else {
+                if (app.editingThemeId && defaultThemes[app.editingThemeId]) {
+                    app.customThemes.push(Object.assign({ id: themeId }, theme));
+                } else {
+                    app.customThemes.push(theme);
+                }
+            }
+            saveThemeStore();
+            loadThemeStore();
+            renderThemeOptions();
+            applyTheme(themeId);
+            renderThemeBuilder();
+            alert('Theme saved');
+        }
+
+        function deleteTheme(themeId) {
+            if (!themeId) {
+                alert('Select a theme first.');
+                return;
+            }
+            const index = app.customThemes.findIndex(theme => theme.id === themeId);
+            if (index === -1) {
+                alert('Only custom themes can be deleted.');
+                return;
+            }
+            if (!confirm('Delete this custom theme?')) {
+                return;
+            }
+            app.customThemes.splice(index, 1);
+            saveThemeStore();
+            loadThemeStore();
+            renderThemeOptions();
+            if (app.activeThemeId === themeId) {
+                applyTheme('default');
+            }
+            renderThemeBuilder();
+        }
+
+        function handleThemeBgUpload(event) {
+            const file = event.target.files[0];
+            if (!file) {
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                app.editedThemeBackground = evt.target.result;
+                updateBgPreviewLabel();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function updateBgPreviewLabel() {
+            const opacity = Number(document.getElementById('bgOpacity').value);
+            const blur = Number(document.getElementById('bgBlur').value);
+            document.getElementById('bgOpacityLabel').textContent = opacity.toFixed(2);
+            document.getElementById('bgBlurLabel').textContent = `${blur}px`;
+            const preview = document.getElementById('themeBgPreview');
+            preview.style.backgroundImage = app.editedThemeBackground ? `url("${app.editedThemeBackground}")` : 'none';
+            preview.style.backgroundSize = 'cover';
+            preview.style.backgroundPosition = 'center';
+            preview.style.filter = `blur(${blur}px)`;
+            preview.style.opacity = app.editedThemeBackground ? opacity : 1;
+        }
+
+        class Member {
+            constructor(name, pronouns = '', role = '', description = '', avatarUrl = '', color = '#667eea', id = null) {
+                this.id = id || Date.now().toString();
+                this.name = name;
+                this.pronouns = pronouns;
+                this.role = role;
+                this.description = description;
+                this.avatarUrl = avatarUrl;
+                this.color = color || '#667eea';
+            }
+        }
+
+        class Switch {
+            constructor(memberIds, notes = '') {
+                this.id = Date.now().toString();
+                this.memberIds = memberIds;
+                this.notes = notes;
+                this.startTime = new Date().toISOString();
+                this.endTime = null;
+            }
+        }
+
+        class Note {
+            constructor(title, content = '') {
+                this.id = Date.now().toString();
+                this.title = title;
+                this.content = content;
+                this.timestamp = new Date().toISOString();
+            }
+        }
+
+        class Message {
+            constructor(senderId, text) {
+                this.id = Date.now().toString();
+                this.senderId = senderId;
+                this.text = text;
+                this.timestamp = new Date().toISOString();
+            }
+        }
+
+        class Profile {
+            constructor(name, id = null) {
+                this.id = id || Date.now().toString();
+                this.name = name;
+            }
+        }
+
+        class DataManager {
+            constructor() {
+                this.profiles = [];
+                this.activeProfileId = null;
+                this.profileData = {};
+                this.loadData();
+                if (!this.profiles.length) {
+                    this.addProfile(new Profile('Default'));
+                }
+                if (!this.activeProfileId || !this.profileData[this.activeProfileId]) {
+                    this.activeProfileId = this.profiles[0]?.id;
+                }
+                this.saveData();
+            }
+
+            loadData() {
+                const profiles = localStorage.getItem('hp_profiles');
+                const activeProfileId = localStorage.getItem('hp_activeProfile');
+                const profileData = localStorage.getItem('hp_profileData');
+                this.profiles = profiles ? JSON.parse(profiles) : [];
+                this.activeProfileId = activeProfileId || null;
+                this.profileData = profileData ? JSON.parse(profileData) : {};
+            }
+
+            saveData() {
+                localStorage.setItem('hp_profiles', JSON.stringify(this.profiles));
+                localStorage.setItem('hp_activeProfile', this.activeProfileId);
+                localStorage.setItem('hp_profileData', JSON.stringify(this.profileData));
+            }
+
+            getCurrentData() {
+                if (!this.activeProfileId) return null;
+                if (!this.profileData[this.activeProfileId]) {
+                    this.profileData[this.activeProfileId] = {
+                        members: [],
+                        switches: [],
+                        notes: [],
+                        currentSwitch: null,
+                        messages: []
+                    };
+                }
+                return this.profileData[this.activeProfileId];
+            }
+
+            getActiveProfile() {
+                return this.profiles.find(profile => profile.id === this.activeProfileId) || null;
+            }
+
+            addProfile(profile) {
+                this.profiles.push(profile);
+                this.profileData[profile.id] = {
+                    members: [],
+                    switches: [],
+                    notes: [],
+                    currentSwitch: null,
+                    messages: []
+                };
+                this.activeProfileId = profile.id;
+                this.saveData();
+            }
+
+            deleteProfile(id) {
+                this.profiles = this.profiles.filter(profile => profile.id !== id);
+                delete this.profileData[id];
+                if (this.activeProfileId === id) {
+                    this.activeProfileId = this.profiles[0]?.id || null;
+                }
+                if (!this.profiles.length) {
+                    this.addProfile(new Profile('Default'));
+                }
+                this.saveData();
+            }
+
+            setActiveProfile(id) {
+                if (this.profiles.some(profile => profile.id === id)) {
+                    this.activeProfileId = id;
+                    this.saveData();
+                }
+            }
+
+            addMember(member) {
+                const data = this.getCurrentData();
+                data.members.push(member);
+                this.saveData();
+            }
+
+            deleteMember(id) {
+                const data = this.getCurrentData();
+                data.members = data.members.filter(m => m.id !== id);
+                this.saveData();
+            }
+
+            updateMember(id, updates) {
+                const data = this.getCurrentData();
+                const member = data.members.find(m => m.id === id);
+                if (member) {
+                    Object.assign(member, updates);
+                    this.saveData();
+                }
+            }
+
+            addNote(note) {
+                const data = this.getCurrentData();
+                data.notes.unshift(note);
+                this.saveData();
+            }
+
+            deleteNote(id) {
+                const data = this.getCurrentData();
+                data.notes = data.notes.filter(n => n.id !== id);
+                this.saveData();
+            }
+
+            startSwitch(memberIds, notes) {
+                const data = this.getCurrentData();
+                if (data.currentSwitch) {
+                    this.endSwitch();
+                }
+                data.currentSwitch = new Switch(memberIds, notes);
+                this.saveData();
+            }
+
+            endSwitch() {
+                const data = this.getCurrentData();
+                if (data.currentSwitch) {
+                    data.currentSwitch.endTime = new Date().toISOString();
+                    data.switches.unshift(data.currentSwitch);
+                    data.currentSwitch = null;
+                    this.saveData();
+                }
+            }
+
+            addMessage(message) {
+                const data = this.getCurrentData();
+                data.messages.unshift(message);
+                this.saveData();
+            }
+
+            clearMessages() {
+                const data = this.getCurrentData();
+                data.messages = [];
+                this.saveData();
+            }
+
+            getProfileExportBundle() {
+                return {
+                    profile: this.getActiveProfile(),
+                    data: this.getCurrentData()
+                };
+            }
+
+            importProfileBundle(bundle) {
+                if (!bundle || !bundle.profile || !bundle.profile.id || !bundle.data) {
+                    throw new Error('Invalid profile bundle');
+                }
+                const originalId = bundle.profile.id;
+                let profile = new Profile(bundle.profile.name, bundle.profile.id);
+                if (this.profiles.some(p => p.id === profile.id)) {
+                    profile.id = `${originalId}-${Date.now()}`;
+                    profile.name = `${profile.name} (copy)`;
+                }
+                this.profiles.push(profile);
+                this.profileData[profile.id] = bundle.data;
+                this.activeProfileId = profile.id;
+                this.saveData();
+            }
+        }
+
+        const app = {
+            data: new DataManager(),
+            editingMemberId: null,
+            editingNoteId: null,
+            selectedMembers: []
+        };
+
+        function initialize() {
+            renderThemeOptions();
+            const savedTheme = localStorage.getItem('hp_theme') || 'default';
+            applyTheme(savedTheme);
+            renderProfileHeader();
+            renderHome();
+            renderMembers();
+            renderFronting();
+            renderJournal();
+            renderMessages();
+            renderStats();
+            renderFloatingActions('home');
+            document.addEventListener('click', event => {
+                if (!event.target.closest('.history-info-card') && !event.target.closest('.timeline-pill-avatar')) {
+                    closeHistoryInfoCard();
+                }
+            });
+        }
+
+        function switchTab(tabName, btn) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(button => button.classList.remove('active'));
+            const targetTab = document.getElementById(tabName);
+            if (!targetTab) return;
+            targetTab.classList.add('active');
+            if (btn) btn.classList.add('active');
+            if (tabName === 'home') renderHome();
+            if (tabName === 'members') renderMembers();
+            if (tabName === 'fronting') renderFronting();
+            if (tabName === 'history') renderHistory();
+            if (tabName === 'journal') renderJournal();
+            if (tabName === 'messages') renderMessages();
+            if (tabName === 'themes') renderThemeBuilder();
+            if (tabName === 'stats') renderStats();
+            renderFloatingActions(tabName);
+            if (tabName !== 'history') {
+                stopHistoryTimer();
+            }
+        }
+
+        function renderProfileHeader() {
+            const profile = app.data.getActiveProfile();
+            document.getElementById('activeProfileName').textContent = profile ? profile.name : 'Unknown';
+        }
+
+        function renderHome() {
+            const profile = app.data.getActiveProfile();
+            const data = app.data.getCurrentData();
+            document.getElementById('activeProfileName').textContent = profile ? profile.name : 'Unknown';
+            document.getElementById('homeProfileName').textContent = profile ? profile.name : 'Friend';
+            document.getElementById('homeMemberCount').textContent = data.members.length;
+            document.getElementById('homeFronterCount').textContent = data.currentSwitch ? data.currentSwitch.memberIds.length : 0;
+            document.getElementById('homeJournalCount').textContent = data.notes.length;
+            document.getElementById('homeMessageCount').textContent = data.messages.length;
+
+            const activity = [];
+            if (data.currentSwitch) {
+                const names = data.currentSwitch.memberIds.map(id => data.members.find(m => m.id === id)?.name).filter(Boolean).join(', ');
+                activity.push({
+                    type: 'switch',
+                    when: data.currentSwitch.startTime,
+                    title: 'Ongoing switch',
+                    text: names ? `Now fronting: ${names}` : 'A switch is in progress.'
+                });
+            }
+
+            data.switches.slice(0, 2).forEach(switchItem => {
+                const names = switchItem.memberIds.map(id => data.members.find(m => m.id === id)?.name).filter(Boolean).join(', ');
+                activity.push({
+                    type: 'switch',
+                    when: switchItem.startTime,
+                    title: 'Switch completed',
+                    text: `${names || 'Unknown'} · ${formatDuration(getSwitchDurationSeconds(switchItem))}`
+                });
+            });
+
+            data.notes.slice(0, 1).forEach(note => {
+                activity.push({
+                    type: 'note',
+                    when: note.timestamp,
+                    title: note.title,
+                    text: note.content || 'No details added.'
+                });
+            });
+
+            data.messages.slice(0, 1).forEach(message => {
+                const sender = data.members.find(m => m.id === message.senderId);
+                activity.push({
+                    type: 'message',
+                    when: message.timestamp,
+                    title: sender ? `${sender.name} sent a message` : 'Incoming message',
+                    text: message.text
+                });
+            });
+
+            activity.sort((a, b) => new Date(b.when) - new Date(a.when));
+            const feed = document.getElementById('homeActivityFeed');
+            if (!activity.length) {
+                feed.innerHTML = '<div class="empty-message">No recent activity yet. Start a switch, journal entry, or message.</div>';
+                return;
+            }
+            feed.innerHTML = activity.map(item => `
+                <div class="activity-card">
+                    <div class="activity-title">${item.title}</div>
+                    <span>${new Date(item.when).toLocaleString()}</span>
+                    <div class="activity-text">${item.text}</div>
+                </div>
+            `).join('');
+        }
+
+        function renderThemeOptions() {
+            const select = document.getElementById('themeSelect');
+            select.innerHTML = Object.keys(themes).map(name => `
+                <option value="${name}">${name.charAt(0).toUpperCase() + name.slice(1)}</option>
+            `).join('');
+        }
+
+        function renderMembers() {
+            const list = document.getElementById('membersList');
+            const members = app.data.getCurrentData().members;
+            if (!members || members.length === 0) {
+                list.innerHTML = '<div class="empty-message">No members yet. Add one to get started!</div>';
+                return;
+            }
+            list.innerHTML = members.map(member => {
+                const color = member.color || '#667eea';
+                const initials = member.name.split(' ').slice(0, 2).map(n => n.charAt(0)).join('').toUpperCase();
+                return `
+                    <div class="member-card" onclick="openMemberProfile('${member.id}')">
+                        <div class="member-card-avatar" style="border-color: ${color}; background: ${member.avatarUrl ? '#ffffff' : '#eef2ff'};">
+                            ${member.avatarUrl ? `<img src="${member.avatarUrl}" alt="${member.name}">` : `<span class="avatar-initials" style="color: ${color};">${initials}</span>`}
+                        </div>
+                        <div class="member-card-details">
+                            <div class="member-card-name">${member.name}</div>
+                            <div class="member-meta-row">
+                                <span class="member-color-swatch" style="background: ${color};"></span>
+                                <span class="member-card-meta">${member.pronouns || 'No pronouns'} · ${member.role || 'No role'}</span>
+                            </div>
+                            ${member.description ? `<div class="member-card-meta" style="margin-top: 8px;">${member.description}</div>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderFronting() {
+            const data = app.data.getCurrentData();
+            const members = data.members;
+            const membersList = document.getElementById('membersList2');
+            const avatarRow = document.getElementById('frontAvatars');
+            const currentSwitch = data.currentSwitch;
+
+            if (!members || members.length === 0) {
+                avatarRow.innerHTML = '';
+                membersList.innerHTML = '<div class="empty-message">Add members before selecting who is fronting.</div>';
+                document.getElementById('frontStatus').textContent = 'No members yet';
+                document.getElementById('frontBadge').textContent = 'Idle';
+                stopFrontTimer();
+                return;
+            }
+
+            const activeIds = currentSwitch && currentSwitch.memberIds.length ? currentSwitch.memberIds : app.selectedMembers;
+            avatarRow.innerHTML = activeIds.length
+                ? activeIds.map(id => {
+                    const member = members.find(m => m.id === id);
+                    if (!member) return '';
+                    const initials = member.name.split(' ').slice(0, 2).map(n => n.charAt(0)).join('').toUpperCase();
+                    return `
+                        <div class="front-avatar" style="border-color: ${member.color || 'var(--accent-color)'}; background: ${member.avatarUrl ? 'var(--input-bg)' : 'var(--surface-soft)'};">
+                            ${member.avatarUrl ? `<img src="${member.avatarUrl}" alt="${member.name}">` : `<span class="avatar-initials" style="color: ${member.color || 'var(--accent-color)'};">${initials}</span>`}
+                        </div>
+                    `;
+                }).join('')
+                : '<div class="empty-message">Select fronters below</div>';
+            document.getElementById('frontBadge').textContent = currentSwitch ? 'Live' : 'Ready';
+
+            membersList.innerHTML = members.map(member => {
+                const selected = app.selectedMembers.includes(member.id);
+                const color = member.color || 'var(--accent-color)';
+                const initials = member.name.split(' ').slice(0, 2).map(n => n.charAt(0)).join('').toUpperCase();
+                const avatar = member.avatarUrl
+                    ? `<img src="${member.avatarUrl}" alt="${member.name}">`
+                    : `<span class="avatar-initials" style="color: ${color};">${initials}</span>`;
+                return `
+                    <button class="member-pill ${selected ? 'selected' : ''}" onclick="toggleMemberSelection('${member.id}')">
+                        <span class="member-pill-avatar">${avatar}</span>
+                        <div>
+                            <div class="member-card-name">${member.name}</div>
+                            <div class="member-card-meta">${member.role || 'No role'}</div>
+                        </div>
+                    </button>
+                `;
+            }).join('');
+
+            updateFrontStatus();
+            updateSwitchActive();
+            if (currentSwitch) {
+                startFrontTimer();
+            } else {
+                stopFrontTimer();
+            }
+        }
+
+        function updateFrontStatus() {
+            const status = document.getElementById('frontStatus');
+            const currentSwitch = app.data.getCurrentData().currentSwitch;
+            if (currentSwitch && currentSwitch.memberIds.length) {
+                const names = currentSwitch.memberIds.map(id => app.data.getCurrentData().members.find(m => m.id === id)?.name || '').filter(Boolean).join(', ');
+                const elapsed = getSwitchDurationSeconds(currentSwitch);
+                status.textContent = names
+                    ? `Fronting: ${names} · ${formatDuration(elapsed)}`
+                    : 'Fronting in progress';
+                return;
+            }
+            if (app.selectedMembers.length === 0) {
+                status.textContent = 'No one selected';
+                return;
+            }
+            const names = app.selectedMembers.map(id => app.data.getCurrentData().members.find(m => m.id === id)?.name || '').filter(Boolean).join(', ');
+            status.textContent = names ? `Selected: ${names}` : 'No one selected';
+        }
+
+        function updateSwitchActive() {
+            const endBtn = document.getElementById('endSwitchBtn');
+            const currentSwitch = app.data.getCurrentData().currentSwitch;
+            endBtn.style.display = currentSwitch ? 'inline-flex' : 'none';
+        }
+
+        function renderHistory() {
+            stopHistoryTimer();
+            const data = app.data.getCurrentData();
+            const members = data.members;
+            const stats = document.getElementById('historyStats');
+            const timeline = document.getElementById('historyTimeline');
+            const currentSwitch = data.currentSwitch;
+            const totalSwitches = data.switches.length;
+            const totalDuration = data.switches.reduce((sum, item) => sum + getSwitchDurationSeconds(item), 0) + (currentSwitch ? getSwitchDurationSeconds(currentSwitch) : 0);
+            const currentNames = currentSwitch ? currentSwitch.memberIds.map(id => members.find(m => m.id === id)?.name || '').filter(Boolean).join(', ') : 'No one fronting';
+            const switchCounts = {};
+            data.switches.forEach(s => s.memberIds.forEach(id => switchCounts[id] = (switchCounts[id] || 0) + 1));
+            const topMemberId = Object.keys(switchCounts).sort((a, b) => switchCounts[b] - switchCounts[a])[0];
+            const topMember = members.find(m => m.id === topMemberId);
+            stats.innerHTML = `
+                <div class="history-card">
+                    <div class="history-item">
+                        <div>
+                            <div class="history-label">Current front</div>
+                            <div class="history-value" id="historyCurrentFront">${currentNames}</div>
+                        </div>
+                    </div>
+                    <div class="history-item">
+                        <div>
+                            <div class="history-label">Active switch</div>
+                            <div class="history-value" id="historyActiveDuration">${currentSwitch ? formatDuration(getSwitchDurationSeconds(currentSwitch)) : 'None'}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="history-card">
+                    <div class="history-item">
+                        <div>
+                            <div class="history-label">Total switches</div>
+                            <div class="history-value">${totalSwitches}</div>
+                        </div>
+                    </div>
+                    <div class="history-item">
+                        <div>
+                            <div class="history-label">Total front duration</div>
+                            <div class="history-value">${formatDuration(totalDuration)}</div>
+                        </div>
+                    </div>
+                </div>
+                ${topMember ? `<div class="history-card"><div class="history-item"><div><div class="history-label">Most active member</div><div class="history-value">${topMember.name} (${switchCounts[topMemberId]} switches)</div></div></div></div>` : ''}
+            `;
+            const allSwitches = [];
+            if (currentSwitch) {
+                allSwitches.push(Object.assign({}, currentSwitch, { active: true }));
+            }
+            allSwitches.push(...data.switches);
+            if (!allSwitches.length) {
+                timeline.innerHTML = '<div class="empty-message">No historical switches recorded yet.</div>';
+                return;
+            }
+            const startTime = Math.min(...allSwitches.map(item => new Date(item.startTime).getTime()));
+            const endTime = Math.max(...allSwitches.map(item => item.endTime ? new Date(item.endTime).getTime() : Date.now()));
+            const timelineStart = new Date(startTime);
+            timelineStart.setMinutes(0, 0, 0, 0);
+            const timelineEnd = new Date(endTime);
+            const totalMinutes = Math.ceil((timelineEnd - timelineStart) / 60000);
+            const pixelsPerMinute = HISTORY_HOUR_HEIGHT / 60;
+            const timelineHeight = Math.max(520, totalMinutes * pixelsPerMinute + HISTORY_TOP_PADDING * 2);
+            timeline.innerHTML = `
+                <div class="history-timeline" style="min-height:${timelineHeight}px;">
+                    <div class="history-timeline-grid">
+                        ${renderHistoryMarkers(timelineStart, timelineEnd)}
+                    </div>
+                    ${allSwitches.map(item => renderHistoryPill(item, members, timelineStart, pixelsPerMinute)).join('')}
+                </div>
+            `;
+            if (currentSwitch) {
+                startHistoryTimer();
+            }
+        }
+
+        const HISTORY_HOUR_HEIGHT = 50;
+        const HISTORY_TOP_PADDING = 20;
+
+        function renderHistoryMarkers(start, end) {
+            const totalHours = Math.ceil((end - start) / 3600000);
+            return Array.from({ length: totalHours + 1 }, (_, index) => {
+                const markerTime = new Date(start.getTime() + index * 3600000);
+                const top = HISTORY_TOP_PADDING + index * HISTORY_HOUR_HEIGHT;
+                const hour = markerTime.getHours();
+                const isMajor = hour % 6 === 0;
+                const label = isMajor
+                    ? hour === 0
+                        ? '12 AM'
+                        : hour === 12
+                            ? '12 PM'
+                            : `${hour % 12 || 12} ${hour < 12 ? 'AM' : 'PM'}`
+                    : '\u00A0';
+                const dateLabel = hour === 0 ? `<div class="timeline-date-label">${markerTime.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</div>` : '';
+                return `
+                    <div class="timeline-marker" style="top:${top}px;">
+                        <span class="marker-label ${isMajor ? '' : 'muted'}">${label}</span>
+                        <span class="marker-line"></span>
+                        ${dateLabel}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderHistoryPill(item, members, timelineStart, pixelsPerMinute) {
+            const start = new Date(item.startTime);
+            const end = item.endTime ? new Date(item.endTime) : new Date();
+            const durationMs = end.getTime() - start.getTime();
+            const top = HISTORY_TOP_PADDING + ((start.getTime() - timelineStart.getTime()) / 60000) * pixelsPerMinute;
+            const height = Math.max(24, (durationMs / 60000) * pixelsPerMinute);
+            const memberColors = item.memberIds.map(id => {
+                const member = members.find(m => m.id === id);
+                return member ? member.color || '#667eea' : '#667eea';
+            });
+            const background = memberColors.length > 1
+                ? `linear-gradient(180deg, ${memberColors.map((color, index) => `${color} ${(index / (memberColors.length - 1)) * 100}%`).join(', ')})`
+                : memberColors[0];
+            const names = item.memberIds.map(id => members.find(m => m.id === id)?.name || '').filter(Boolean).join(', ') || 'Unknown';
+            const durationText = item.active ? `Live ${formatDuration(Math.max(0, Math.floor((new Date().getTime() - start.getTime()) / 1000)) )}` : formatDuration(Math.max(0, Math.floor(durationMs / 1000)));
+            const avatarsHtml = item.memberIds.map(id => {
+                const member = members.find(m => m.id === id);
+                if (!member) return '';
+                if (member.avatarUrl) {
+                    return `<span class="pill-avatar-dot"><img src="${member.avatarUrl}" alt="${member.name}"></span>`;
+                }
+                const initials = member.name.split(' ').slice(0, 2).map(n => n.charAt(0)).join('').toUpperCase();
+                return `<span class="pill-avatar-dot"><span>${initials}</span></span>`;
+            }).join('');
+            return `
+                <div class="timeline-pill" id="history-pill-${item.id}" style="top:${Math.max(0, top)}px;">
+                    <button type="button" class="timeline-pill-avatar" onclick="showHistoryInfoCard(event, '${item.id}')">
+                        <div class="timeline-pill-avatars">${avatarsHtml}</div>
+                    </button>
+                    <div class="timeline-pill-body" style="height:${height}px; background: ${background};">
+                        <div class="pill-label">${names}</div>
+                        <div class="pill-duration" id="pill-duration-${item.id}">${durationText}</div>
+                        ${item.active ? '<span class="pill-live-badge"><span class="pill-live-dot"></span>Fronting Now</span>' : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        function startHistoryTimer() {
+            stopHistoryTimer();
+            if (!app.data.getCurrentData().currentSwitch) {
+                return;
+            }
+            app.historyTimer = setInterval(() => {
+                updateHistoryLivePill();
+                updateHistoryInfoCard();
+                updateHistoryStats();
+            }, 1000);
+        }
+
+        function stopHistoryTimer() {
+            if (app.historyTimer) {
+                clearInterval(app.historyTimer);
+                app.historyTimer = null;
+            }
+        }
+
+        function updateHistoryLivePill() {
+            const currentSwitch = app.data.getCurrentData().currentSwitch;
+            if (!currentSwitch) {
+                return;
+            }
+            const pill = document.getElementById(`history-pill-${currentSwitch.id}`);
+            if (!pill) {
+                return;
+            }
+            const start = new Date(currentSwitch.startTime);
+            const end = new Date();
+            const durationSeconds = Math.max(0, Math.floor((end.getTime() - start.getTime()) / 1000));
+            const height = Math.max(24, (durationSeconds / 3600) * HISTORY_HOUR_HEIGHT);
+            const body = pill.querySelector('.timeline-pill-body');
+            if (body) {
+                body.style.height = `${height}px`;
+            }
+            const durationLabel = pill.querySelector('.pill-duration');
+            if (durationLabel) {
+                durationLabel.textContent = `Live ${formatDuration(durationSeconds)}`;
+            }
+        }
+
+        function updateHistoryStats() {
+            const currentSwitch = app.data.getCurrentData().currentSwitch;
+            const members = app.data.getCurrentData().members;
+            const currentNames = currentSwitch ? currentSwitch.memberIds.map(id => members.find(m => m.id === id)?.name || '').filter(Boolean).join(', ') : 'No one fronting';
+            const label = document.getElementById('historyCurrentFront');
+            const duration = document.getElementById('historyActiveDuration');
+            if (label) {
+                label.textContent = currentNames;
+            }
+            if (duration) {
+                duration.textContent = currentSwitch ? formatDuration(getSwitchDurationSeconds(currentSwitch)) : 'None';
+            }
+        }
+
+        function showHistoryInfoCard(event, switchId) {
+            event.stopPropagation();
+            const card = document.getElementById('historyInfoCard');
+            card.style.visibility = 'hidden';
+            card.classList.remove('hidden');
+            card.dataset.switchId = switchId;
+            updateHistoryInfoCard();
+            const target = event.currentTarget;
+            const targetRect = target.getBoundingClientRect();
+            const cardRect = card.getBoundingClientRect();
+            let left = targetRect.left;
+            let top = targetRect.bottom + 12;
+            if (left + cardRect.width > window.innerWidth - 16) {
+                left = window.innerWidth - cardRect.width - 16;
+            }
+            if (top + cardRect.height > window.innerHeight - 16) {
+                top = targetRect.top - cardRect.height - 12;
+            }
+            card.style.left = `${Math.max(12, left)}px`;
+            card.style.top = `${Math.max(12, top)}px`;
+            card.style.visibility = 'visible';
+        }
+
+        function updateHistoryInfoCard() {
+            const card = document.getElementById('historyInfoCard');
+            if (!card || card.classList.contains('hidden')) {
+                return;
+            }
+            const switchId = card.dataset.switchId;
+            if (!switchId) {
+                return;
+            }
+            const item = findHistorySwitch(switchId);
+            if (!item) {
+                closeHistoryInfoCard();
+                return;
+            }
+            const members = app.data.getCurrentData().members;
+            const names = item.memberIds.map(id => members.find(m => m.id === id)?.name || '').filter(Boolean).join(', ') || 'Unknown';
+            const startedAt = new Date(item.startTime);
+            const endedAt = item.endTime ? new Date(item.endTime) : null;
+            const duration = getSwitchDurationSeconds(item);
+            card.innerHTML = `
+                <div class="history-info-card-header">
+                    <div class="history-info-card-title">${names}</div>
+                    <button class="history-info-card-close" onclick="closeHistoryInfoCard()">×</button>
+                </div>
+                <div class="history-info-row">
+                    <span>Front started</span>
+                    <div class="history-info-value">${startedAt.toLocaleString()}</div>
+                </div>
+                <div class="history-info-row">
+                    <span>Front ended</span>
+                    <div class="history-info-value">${endedAt ? endedAt.toLocaleString() : 'Currently fronting'}</div>
+                </div>
+                <div class="history-info-row">
+                    <span>Duration</span>
+                    <div class="history-info-value">${formatDuration(duration)}</div>
+                </div>
+                <div class="history-info-row">
+                    <span>Switch notes</span>
+                    <div class="history-info-note">${item.notes ? item.notes : '<em>No switch notes</em>'}</div>
+                </div>
+                <div class="history-info-actions">
+                    <button class="btn" onclick="alert('Edit not implemented yet')">Edit</button>
+                    <button class="btn btn-small" onclick="alert('Comments not implemented yet')">Comments</button>
+                </div>
+            `;
+        }
+
+        function findHistorySwitch(switchId) {
+            const data = app.data.getCurrentData();
+            if (data.currentSwitch && data.currentSwitch.id === switchId) {
+                return Object.assign({}, data.currentSwitch, { active: true });
+            }
+            const direct = data.switches.find(s => s.id === switchId);
+            if (direct) {
+                return direct;
+            }
+            const originalId = switchId.split('-')[0];
+            if (data.currentSwitch && data.currentSwitch.id === originalId) {
+                return Object.assign({}, data.currentSwitch, { active: true });
+            }
+            return data.switches.find(s => s.id === originalId);
+        }
+
+        function closeHistoryInfoCard() {
+            const card = document.getElementById('historyInfoCard');
+            if (card) {
+                card.classList.add('hidden');
+                card.dataset.switchId = '';
+            }
+        }
+
+        function formatDuration(seconds) {
+            const hrs = Math.floor(seconds / 3600);
+            const mins = Math.floor((seconds % 3600) / 60);
+            const secs = seconds % 60;
+            const padded = value => String(value).padStart(2, '0');
+            if (hrs > 0) {
+                return `${hrs}:${padded(mins)}:${padded(secs)}`;
+            }
+            return `${mins}:${padded(secs)}`;
+        }
+
+        function getSwitchDurationSeconds(switchItem) {
+            if (!switchItem || !switchItem.startTime) return 0;
+            const start = new Date(switchItem.startTime).getTime();
+            const end = switchItem.endTime ? new Date(switchItem.endTime).getTime() : Date.now();
+            return Math.max(0, Math.floor((end - start) / 1000));
+        }
+
+        function renderFrontHistory() {
+            // Legacy front history renderer removed. Active front timers now update the timeline and status directly.
+        }
+
+        function startFrontTimer() {
+            if (app.frontTimerInterval) return;
+            app.frontTimerInterval = setInterval(() => {
+                updateFrontStatus();
+                updateHistoryLivePill();
+                updateHistoryStats();
+            }, 1000);
+        }
+
+        function stopFrontTimer() {
+            if (app.frontTimerInterval) {
+                clearInterval(app.frontTimerInterval);
+                app.frontTimerInterval = null;
+            }
+        }
+
+        function toggleMemberSelection(memberId) {
+            const index = app.selectedMembers.indexOf(memberId);
+            if (index > -1) {
+                app.selectedMembers.splice(index, 1);
+            } else {
+                app.selectedMembers.push(memberId);
+            }
+            renderFronting();
+        }
+
+        function startSwitch() {
+            if (app.selectedMembers.length === 0) {
+                alert('Please select at least one member');
+                return;
+            }
+            const notes = document.getElementById('switchNotes').value;
+            app.data.startSwitch(app.selectedMembers, notes);
+            document.getElementById('switchNotes').value = '';
+            renderFronting();
+            if (document.getElementById('history').classList.contains('active')) {
+                renderHistory();
+            }
+        }
+
+        function endSwitch() {
+            app.data.endSwitch();
+            renderFronting();
+            if (document.getElementById('history').classList.contains('active')) {
+                renderHistory();
+            }
+        }
+
+        function renderJournal() {
+            const list = document.getElementById('notesList');
+            const notes = app.data.getCurrentData().notes;
+            if (!notes || notes.length === 0) {
+                list.innerHTML = '<div class="empty-message">No journal entries yet. Start writing!</div>';
+                return;
+            }
+            list.innerHTML = notes.map(note => `
+                <div class="timeline-entry">
+                    <div class="timeline-content">
+                        <div class="timeline-header">
+                            <div class="timeline-title">${note.title}</div>
+                            <div class="timeline-time">${new Date(note.timestamp).toLocaleString()}</div>
+                        </div>
+                        <div class="timeline-body">${note.content || '<em>No content yet.</em>'}</div>
+                        <div class="card-buttons">
+                            <button class="btn btn-small" onclick="editNote('${note.id}')">Edit</button>
+                            <button class="btn btn-small btn-danger" onclick="deleteNote('${note.id}')">Delete</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderMessages() {
+            const list = document.getElementById('messagesList');
+            const data = app.data.getCurrentData();
+            const members = data.members;
+            const senderSelect = document.getElementById('messageSender');
+            if (!members || members.length === 0) {
+                senderSelect.innerHTML = '<option value="">Add members first</option>';
+            } else {
+                const selectedId = senderSelect.value || members[0]?.id || '';
+                senderSelect.innerHTML = members.map(member => `
+                    <option value="${member.id}" ${member.id === selectedId ? 'selected' : ''}>${member.name}</option>
+                `).join('');
+            }
+            if (!data.messages || data.messages.length === 0) {
+                list.innerHTML = '<div class="empty-message">No messages yet. Start a conversation.</div>';
+                return;
+            }
+            const selectedSender = senderSelect.value;
+            const groups = [];
+            const orderedMessages = data.messages.slice().reverse();
+            orderedMessages.forEach(message => {
+                const sender = members.find(m => m.id === message.senderId);
+                if (groups.length && groups[groups.length - 1].senderId === message.senderId) {
+                    groups[groups.length - 1].messages.push(message);
+                } else {
+                    groups.push({ senderId: message.senderId, sender, messages: [message] });
+                }
+            });
+            list.innerHTML = groups.map(group => {
+                const sender = group.sender;
+                const isOutgoing = sender && sender.id === selectedSender;
+                const initials = sender ? sender.name.split(' ').slice(0, 2).map(n => n.charAt(0)).join('').toUpperCase() : '??';
+                const avatarColor = sender?.color ? `${sender.color}22` : 'var(--surface-soft)';
+                return `
+                    <div class="message-group ${isOutgoing ? 'outgoing' : ''}">
+                        <div class="message-avatar" style="background: ${sender?.color ? sender.color + '22' : 'var(--surface-soft)'};">
+                            ${sender?.avatarUrl ? `<img src="${sender.avatarUrl}" alt="${sender.name}">` : `<span class="avatar-initials" style="color: ${sender?.color || 'var(--accent-color)'};">${initials}</span>`}
+                        </div>
+                        <div class="message-bubble">
+                            <div class="message-name">${sender ? sender.name : 'Unknown'}</div>
+                            <div class="message-text">${group.messages.map(message => `<div>${message.text}</div>`).join('')}</div>
+                            <div class="message-time">${new Date(group.messages[group.messages.length - 1].timestamp).toLocaleString()}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function sendMessage() {
+            const senderId = document.getElementById('messageSender').value;
+            const textEl = document.getElementById('messageText');
+            const text = textEl.value.trim();
+            if (!senderId) {
+                alert('Choose a sender before sending a message.');
+                return;
+            }
+            if (!text) {
+                alert('Enter a message first.');
+                return;
+            }
+            app.data.addMessage(new Message(senderId, text));
+            textEl.value = '';
+            renderMessages();
+            renderHome();
+        }
+
+        function clearMessages() {
+            if (!confirm('Clear all messages for this profile?')) {
+                return;
+            }
+            app.data.clearMessages();
+            renderMessages();
+            renderHome();
+        }
+
+        function renderStats() {
+            const stats = document.getElementById('statsContent');
+            const data = app.data.getCurrentData();
+            const memberCount = data.members.length;
+            const switchCount = data.switches.length;
+            const noteCount = data.notes.length;
+            const messageCount = data.messages.length;
+            let html = `
+                <div class="stats-card">
+                    <div class="card-title">Total Members</div>
+                    <div class="summary-number">${memberCount}</div>
+                </div>
+                <div class="stats-card">
+                    <div class="card-title">Total Switches</div>
+                    <div class="summary-number">${switchCount}</div>
+                </div>
+                <div class="stats-card">
+                    <div class="card-title">Journal Entries</div>
+                    <div class="summary-number">${noteCount}</div>
+                </div>
+                <div class="stats-card">
+                    <div class="card-title">Messages</div>
+                    <div class="summary-number">${messageCount}</div>
+                </div>
+            `;
+            if (data.switches.length > 0) {
+                const lastSwitch = data.switches[0];
+                html += `
+                    <div class="stats-card">
+                        <div class="card-title">Last Switch</div>
+                        <div class="card-subtitle">${new Date(lastSwitch.startTime).toLocaleString()}</div>
+                        <div style="margin-top: 8px; font-size: 14px; color: var(--text-color);">${lastSwitch.memberIds.map(id => data.members.find(m => m.id === id)?.name || '').filter(Boolean).join(', ')}</div>
+                    </div>
+                `;
+            }
+            if (memberCount > 0 && switchCount > 0) {
+                const switchCounts = {};
+                data.switches.forEach(s => s.memberIds.forEach(id => switchCounts[id] = (switchCounts[id] || 0) + 1));
+                const mostActiveMemberId = Object.keys(switchCounts).reduce((a, b) => switchCounts[a] > switchCounts[b] ? a : b);
+                const mostActiveMember = data.members.find(m => m.id === mostActiveMemberId);
+                if (mostActiveMember) {
+                    html += `
+                        <div class="stats-card">
+                            <div class="card-title">Most Active Member</div>
+                            <div style="font-size: 16px; font-weight: 700; color: var(--accent-color); margin-top: 8px;">${mostActiveMember.name} (${switchCounts[mostActiveMemberId]} switches)</div>
+                        </div>
+                    `;
+                }
+            }
+            stats.innerHTML = html;
+        }
+
+        function openAddMemberModal() {
+            app.editingMemberId = null;
+            document.getElementById('memberModalTitle').textContent = 'Add Member';
+            document.getElementById('memberName').value = '';
+            document.getElementById('memberPronouns').value = '';
+            document.getElementById('memberRole').value = '';
+            document.getElementById('memberDesc').value = '';
+            document.getElementById('memberAvatar').value = '';
+            document.getElementById('memberAvatarFile').value = '';
+            document.getElementById('memberColor').value = '#667eea';
+            document.getElementById('avatarPreview').innerHTML = 'Preview';
+            document.getElementById('memberViewSection').classList.add('hidden');
+            document.getElementById('memberFormSection').classList.remove('hidden');
+            document.getElementById('memberModal').classList.add('active');
+        }
+
+        function openMemberProfile(id) {
+            const member = app.data.getCurrentData().members.find(m => m.id === id);
+            if (!member) return;
+            app.editingMemberId = id;
+            app.lastTab = document.querySelector('.tab-btn.active')?.dataset.tab || 'members';
+
+            document.getElementById('profilePageName').textContent = member.name;
+            document.getElementById('profilePageMeta').textContent = `${member.pronouns || 'No pronouns'} · ${member.role || 'No role'}`;
+            document.getElementById('profilePageBio').textContent = member.description || 'No description available.';
+            const avatarContainer = document.getElementById('profilePageAvatar');
+            if (member.avatarUrl) {
+                avatarContainer.innerHTML = `<img src="${member.avatarUrl}" alt="${member.name}">`;
+            } else {
+                const initials = member.name.split(' ').slice(0, 2).map(n => n.charAt(0)).join('').toUpperCase();
+                avatarContainer.innerHTML = `<span class="avatar-initials" style="color: ${member.color || '#4f7bff'};">${initials}</span>`;
+            }
+            switchTab('memberProfilePage');
+        }
+
+        function closeMemberProfilePage() {
+            const fallback = app.lastTab || 'members';
+            const button = document.querySelector(`[data-tab="${fallback}"]`);
+            switchTab(fallback, button);
+        }
+
+        function editMember(id) {
+            const member = app.data.getCurrentData().members.find(m => m.id === id);
+            if (member) {
+                app.editingMemberId = id;
+                document.getElementById('memberModalTitle').textContent = 'Edit Member';
+                document.getElementById('memberName').value = member.name;
+                document.getElementById('memberPronouns').value = member.pronouns;
+                document.getElementById('memberRole').value = member.role;
+                document.getElementById('memberDesc').value = member.description;
+                document.getElementById('memberAvatar').value = member.avatarUrl || '';
+                document.getElementById('memberColor').value = member.color || '#667eea';
+                document.getElementById('memberAvatarFile').value = '';
+                renderAvatarPreview(member.avatarUrl);
+                document.getElementById('memberViewSection').classList.add('hidden');
+                document.getElementById('memberFormSection').classList.remove('hidden');
+                document.getElementById('memberModal').classList.add('active');
+            }
+        }
+
+        function saveMember() {
+            const name = document.getElementById('memberName').value.trim();
+            if (!name) {
+                alert('Member name is required');
+                return;
+            }
+            const memberData = {
+                name,
+                pronouns: document.getElementById('memberPronouns').value,
+                role: document.getElementById('memberRole').value,
+                description: document.getElementById('memberDesc').value,
+                avatarUrl: document.getElementById('memberAvatar').value.trim(),
+                color: document.getElementById('memberColor').value || '#667eea'
+            };
+            if (app.editingMemberId) {
+                app.data.updateMember(app.editingMemberId, memberData);
+            } else {
+                app.data.addMember(new Member(
+                    memberData.name,
+                    memberData.pronouns,
+                    memberData.role,
+                    memberData.description,
+                    memberData.avatarUrl,
+                    memberData.color
+                ));
+            }
+            closeMemberModal();
+            renderMembers();
+            renderFronting();
+        }
+
+        function handleAvatarFileSelection(event) {
+            const file = event.target.files[0];
+            if (!file) {
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                const url = evt.target.result;
+                document.getElementById('memberAvatar').value = url;
+                renderAvatarPreview(url);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function renderAvatarPreview(url) {
+            const preview = document.getElementById('avatarPreview');
+            if (url) {
+                preview.innerHTML = `<img src="${url}" alt="Avatar">`;
+            } else {
+                preview.innerHTML = 'Preview';
+            }
+        }
+
+        function closeMemberModal() {
+            document.getElementById('memberModal').classList.remove('active');
+        }
+
+        function deleteMember(id) {
+            if (confirm('Delete this member?')) {
+                app.data.deleteMember(id);
+                closeMemberModal();
+                renderMembers();
+                renderFronting();
+            }
+        }
+
+        function openAddNoteModal() {
+            app.editingNoteId = null;
+            document.getElementById('noteModalTitle').textContent = 'New Note';
+            document.getElementById('noteTitle').value = '';
+            document.getElementById('noteContent').value = '';
+            document.getElementById('noteModal').classList.add('active');
+        }
+
+        function editNote(id) {
+            const note = app.data.getCurrentData().notes.find(n => n.id === id);
+            if (note) {
+                app.editingNoteId = id;
+                document.getElementById('noteModalTitle').textContent = 'Edit Note';
+                document.getElementById('noteTitle').value = note.title;
+                document.getElementById('noteContent').value = note.content;
+                document.getElementById('noteModal').classList.add('active');
+            }
+        }
+
+        function saveNote() {
+            const title = document.getElementById('noteTitle').value.trim();
+            if (!title) {
+                alert('Note title is required');
+                return;
+            }
+            if (app.editingNoteId) {
+                const note = app.data.getCurrentData().notes.find(n => n.id === app.editingNoteId);
+                if (note) {
+                    note.title = title;
+                    note.content = document.getElementById('noteContent').value;
+                    app.data.saveData();
+                }
+            } else {
+                app.data.addNote(new Note(title, document.getElementById('noteContent').value));
+            }
+            closeNoteModal();
+            renderJournal();
+        }
+
+        function closeNoteModal() {
+            document.getElementById('noteModal').classList.remove('active');
+        }
+
+        function deleteNote(id) {
+            if (confirm('Delete this note?')) {
+                app.data.deleteNote(id);
+                renderJournal();
+            }
+        }
+
+        function openProfileModal() {
+            renderProfileList();
+            document.getElementById('profileModal').classList.add('active');
+        }
+
+        function closeProfileModal() {
+            document.getElementById('profileModal').classList.remove('active');
+        }
+
+        function renderProfileList() {
+            const list = document.getElementById('profileList');
+            list.innerHTML = app.data.profiles.map(profile => `
+                <div class="card" style="margin-bottom: 10px;">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">${profile.name}</div>
+                            <div class="card-subtitle">ID: ${profile.id}</div>
+                        </div>
+                    </div>
+                    <div class="card-buttons" style="justify-content: flex-start;">
+                        <button class="btn btn-small" onclick="selectProfile('${profile.id}')">Use</button>
+                        <button class="btn btn-small btn-danger" onclick="deleteProfile('${profile.id}')">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+            if (!list.innerHTML.trim()) {
+                list.innerHTML = '<div class="empty-message">No profiles yet. Create one below.</div>';
+            }
+        }
+
+        function createProfile() {
+            const name = document.getElementById('newProfileName').value.trim();
+            if (!name) {
+                alert('Enter a profile name');
+                return;
+            }
+            app.data.addProfile(new Profile(name));
+            document.getElementById('newProfileName').value = '';
+            renderProfileList();
+            renderProfileHeader();
+            renderMembers();
+            renderFronting();
+            renderJournal();
+            renderMessages();
+            renderStats();
+        }
+
+        function deleteProfile(id) {
+            if (confirm('Delete this profile and all its data?')) {
+                app.data.deleteProfile(id);
+                renderProfileList();
+                renderProfileHeader();
+                renderMembers();
+                renderFronting();
+                renderJournal();
+                renderMessages();
+                renderStats();
+            }
+        }
+
+        function selectProfile(id) {
+            app.data.setActiveProfile(id);
+            app.selectedMembers = [];
+            closeProfileModal();
+            renderProfileHeader();
+            renderMembers();
+            renderFronting();
+            renderJournal();
+            renderMessages();
+            renderStats();
+        }
+
+        function openExportModal() {
+            const bundle = app.data.getProfileExportBundle();
+            document.getElementById('exportData').value = JSON.stringify(bundle, null, 2);
+            document.getElementById('exportModal').classList.add('active');
+        }
+
+        function closeExportModal() {
+            document.getElementById('exportModal').classList.remove('active');
+        }
+
+        function copyExportData() {
+            const exportData = document.getElementById('exportData');
+            exportData.select();
+            document.execCommand('copy');
+            alert('Profile data copied to clipboard');
+        }
+
+        function openImportModal() {
+            document.getElementById('importData').value = '';
+            document.getElementById('importModal').classList.add('active');
+        }
+
+        function closeImportModal() {
+            document.getElementById('importModal').classList.remove('active');
+        }
+
+        function importProfile() {
+            const data = document.getElementById('importData').value.trim();
+            if (!data) {
+                alert('Paste profile data first');
+                return;
+            }
+            try {
+                const bundle = JSON.parse(data);
+                app.data.importProfileBundle(bundle);
+                closeImportModal();
+                renderProfileHeader();
+                renderMembers();
+                renderFronting();
+                renderJournal();
+                renderMessages();
+                renderStats();
+                renderProfileList();
+                alert('Profile imported successfully');
+            } catch (err) {
+                alert('Invalid profile data');
+            }
+        }
+
+        function setTheme(themeName) {
+            applyTheme(themeName);
+        }
+
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                switchTab(this.dataset.tab, this);
+            });
+        });
+
+        document.getElementById('memberModal').addEventListener('click', function(e) {
+            if (e.target === this) closeMemberModal();
+        });
+        document.getElementById('noteModal').addEventListener('click', function(e) {
+            if (e.target === this) closeNoteModal();
+        });
+        document.getElementById('profileModal').addEventListener('click', function(e) {
+            if (e.target === this) closeProfileModal();
+        });
+        document.getElementById('exportModal').addEventListener('click', function(e) {
+            if (e.target === this) closeExportModal();
+        });
+        document.getElementById('importModal').addEventListener('click', function(e) {
+            if (e.target === this) closeImportModal();
+        });
+
+        initialize();
+    </script>
+</body>
+</html>

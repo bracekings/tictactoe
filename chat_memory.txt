@@ -1,0 +1,24 @@
+# Chat Memory (Plain Text)
+
+This file is a human-editable memory log for your bot. It's useful for quick notes or to seed the RAG index later.
+
+Guidelines
+- Keep each entry on one line where possible.
+- Prefix entries with a timestamp and role: `[YYYY-MM-DD HH:MM] ROLE Sender: content`
+- ROLE should be `user` or `assistant`.
+- Avoid storing sensitive personal data (SSNs, passwords, private keys, full addresses).
+
+Example entries
+[2026-08-13 09:12] user Alex: I like short, direct replies.
+[2026-08-13 09:13] assistant Brace: Noted. I'll keep answers concise.
+[2026-08-13 10:05] user Alex: Remind me I prefer bullet points.
+
+How to convert to JSON
+- Use `train/prepare_dataset.py` to convert structured exports into `train.jsonl`.
+- If you want to convert this text file into JSON for the bot, a simple parser can split on the first `] ` and then on the role/sender pattern.
+
+Privacy
+- Treat this file as sensitive. If you share it for training, remove or redact any personally-identifying information.
+
+Notes
+- If you prefer JSON memory, the bot already reads `chat_memory.json` by default. This text file is complementary and easy to edit manually.

@@ -1,0 +1,9 @@
+transformers>=4.35.0
+datasets>=2.13.0
+accelerate>=0.21.0
+peft>=0.4.0
+bitsandbytes>=0.38.0
+sentence-transformers>=2.2.2
+faiss-cpu
+safetensors
+torch>=2.0.0

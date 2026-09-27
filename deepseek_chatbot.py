@@ -3,6 +3,7 @@ import os
 import json
 import io
 import asyncio
+import time
 from openai import OpenAI
 from huggingface_hub import InferenceClient
 from pydub import AudioSegment
@@ -37,6 +38,10 @@ except ImportError:
 
 import speech_recognition as sr
 import discord
+import importlib
+import shutil
+import subprocess
+from importlib import metadata
 
 print("Python executable:", sys.executable)
 
@@ -291,6 +296,8 @@ class DiscordMCP(discord.Client):
         self.voice_clients_map = {}  # guild.id -> voice_client
         # guild.id -> bool whether a connect() is in progress (to avoid races)
         self.connecting = {}
+        # guild.id -> timestamp until which we should avoid connect attempts after failures
+        self.connect_cooldowns = {}
         # guild.id -> asyncio.Task for recording loop
         self.recording_tasks = {}
         # guild.id -> last text channel used for transcripts
@@ -357,10 +364,27 @@ class DiscordMCP(discord.Client):
     async def on_voice_state_update(self, member, before, after):
         # Track voice client state on disconnect
         if member == self.user:
-            guild_id = member.guild.id
+            guild = member.guild
+            guild_id = guild.id
             # Joined a voice channel
             if (before is None or before.channel is None) and (after is not None and after.channel is not None):
                 print(f"Moxie connected to voice channel in guild {guild_id}: {after.channel}")
+                # Try to get the authoritative VoiceClient for this guild and repair cache
+                try:
+                    vc = getattr(guild, 'voice_client', None)
+                    if not vc:
+                        for active in getattr(self, 'voice_clients', []):
+                            try:
+                                if getattr(active, 'guild', None) and getattr(active.guild, 'id', None) == guild_id:
+                                    vc = active
+                                    break
+                            except Exception:
+                                continue
+                    if vc:
+                        self.voice_clients_map[guild_id] = vc
+                        print(f"[DEBUG] Repaired voice_clients_map for guild {guild_id} -> {vc}")
+                except Exception as e:
+                    print(f"[DEBUG] on_voice_state_update join: error repairing cache: {e}")
             # Left a voice channel
             elif (before is not None and before.channel is not None) and (after is None or after.channel is None):
                 print(f"Moxie disconnected from voice channel in guild {guild_id}")
@@ -444,28 +468,57 @@ class DiscordMCP(discord.Client):
                             print(f"[DEBUG] Error moving existing vc: {e}")
                             await self.safe_send(message.channel, f"🦊 Connected but failed to move voice client: {e}")
                     else:
-                        try:
-                            new_vc = await voice_channel.connect()
-                            self.voice_clients_map[guild_id] = new_vc
-                        except asyncio.CancelledError:
-                            print("[DEBUG] voice connect cancelled")
-                        except Exception as e:
-                            print(f"[DEBUG] Exception while connecting to voice: {type(e).__name__}: {e}")
-                            await self.safe_send(message.channel, f"🦊 Failed to connect to voice channel: {e}")
+                        # Respect cooldowns from previous failures
+                        cooldown_until = self.connect_cooldowns.get(guild_id)
+                        if cooldown_until and cooldown_until > time.time():
+                            await self.safe_send(message.channel, "🦊 Recent voice-connect failures detected; please wait a moment before retrying (cooldown).")
                             new_vc = None
-
-                        if new_vc:
+                        else:
                             try:
-                                started = self.start_transcription_loop(guild_id, new_vc, message.channel)
-                                if started and self.listening_state.get(guild_id):
-                                    await self.safe_send(message.channel, f"🦊 Joined {voice_channel.name} and started listening!")
-                                elif started:
-                                    await self.safe_send(message.channel, f"🦊 Joined {voice_channel.name}. Listening did not start (sinks missing or disabled).")
+                                # Attempt to connect: allow library reconnect behavior (py-cord expected) and use a timeout
+                                new_conn = await voice_channel.connect(timeout=20, reconnect=True)
+                                # Give the library a short moment to register the connection and assign guild.voice_client
+                                await asyncio.sleep(0.5)
+                                # Prefer authoritative guild.voice_client, fall back to the returned VoiceClient
+                                new_vc = getattr(message.guild, 'voice_client', None) or new_conn or self._resolve_voice_client(message.guild)
+                                if new_vc:
+                                    self.voice_clients_map[guild_id] = new_vc
                                 else:
-                                    await self.safe_send(message.channel, f"🦊 Joined {voice_channel.name}, but live listening is unavailable on this environment.")
+                                    print("[DEBUG] connect succeeded but could not find guild.voice_client after connect")
+                            except asyncio.CancelledError:
+                                print("[DEBUG] voice connect cancelled")
+                                new_vc = None
                             except Exception as e:
-                                print(f"[DEBUG] start_transcription_loop error: {e}")
-                                await self.safe_send(message.channel, f"🦊 Joined {voice_channel.name}, but couldn't start listening: {e}")
+                                # Explicitly handle ConnectionClosed from discord (voice websocket closed)
+                                err_name = type(e).__name__
+                                print(f"[DEBUG] Exception while connecting to voice: {err_name}: {e}")
+                                try:
+                                    # If this looks like a voice websocket close (4006), add a cooldown and a helpful hint
+                                    if "4006" in str(e) or err_name == 'ConnectionClosed':
+                                        self.connect_cooldowns[guild_id] = time.time() + 60
+                                        await self.safe_send(message.channel, (
+                                            "🦊 Voice connect failed with a voice-websocket error (4006). "
+                                            "This commonly happens when the installed discord voice stack is incompatible or the voice server closes the connection.\n"
+                                            "Try: `pip install -U py-cord` (voice-enabled) and ensure ffmpeg is installed, then restart the bot."
+                                        ))
+                                    else:
+                                        await self.safe_send(message.channel, f"🦊 Failed to connect to voice channel: {e}")
+                                except Exception:
+                                    print("[DEBUG] could not send connect-failure message (session may be closed)")
+                                new_vc = None
+
+                            if new_vc:
+                                try:
+                                    started = self.start_transcription_loop(guild_id, new_vc, message.channel)
+                                    if started and self.listening_state.get(guild_id):
+                                        await self.safe_send(message.channel, f"🦊 Joined {voice_channel.name} and started listening!")
+                                    elif started:
+                                        await self.safe_send(message.channel, f"🦊 Joined {voice_channel.name}. Listening did not start (sinks missing or disabled).")
+                                    else:
+                                        await self.safe_send(message.channel, f"🦊 Joined {voice_channel.name}, but live listening is unavailable on this environment.")
+                                except Exception as e:
+                                    print(f"[DEBUG] start_transcription_loop error: {e}")
+                                    await self.safe_send(message.channel, f"🦊 Joined {voice_channel.name}, but couldn't start listening: {e}")
                 except asyncio.TimeoutError:
                     await self.safe_send(message.channel, "🦊 Timeout while connecting to voice. Please try again.")
                 except Exception as e:
@@ -508,6 +561,65 @@ class DiscordMCP(discord.Client):
             if not vc or not getattr(vc, 'is_connected', lambda: False)():
                 await self.safe_send(message.channel, "🦊 I need to be in a voice channel first! Use `!join`.")
                 return
+
+        elif content == "!status":
+            # Diagnostic command to inspect voice client state
+            try:
+                gid = message.guild.id
+                guild_vc = getattr(message.guild, 'voice_client', None)
+                cached = self.voice_clients_map.get(gid)
+                active_list = getattr(self, 'voice_clients', [])
+                msg = (
+                    f"Voice diagnostics for guild {gid}:\n"
+                    f" - guild.voice_client: {guild_vc}\n"
+                    f" - cached voice_clients_map[{gid}]: {cached}\n"
+                    f" - client.voice_clients: {active_list}\n"
+                    f" - listening_state[{gid}]: {self.listening_state.get(gid)}\n"
+                    f" - connecting[{gid}]: {self.connecting.get(gid)}\n"
+                )
+                await self.safe_send(message.channel, msg)
+            except Exception as e:
+                await self.safe_send(message.channel, f"Could not fetch status: {e}")
+
+        elif content == "!env":
+            # Report installed relevant package versions and ffmpeg availability
+            try:
+                py_ver = sys.version.replace('\n', ' ')
+                discord_ver = getattr(discord, '__version__', None)
+            except Exception:
+                py_ver = sys.version
+                discord_ver = None
+
+            def pkg_ver(name):
+                try:
+                    return metadata.version(name)
+                except Exception:
+                    return None
+
+            pynacl = pkg_ver('PyNaCl') or pkg_ver('pynacl')
+            opuslib = pkg_ver('opuslib') or pkg_ver('py-opus') or pkg_ver('opus')
+            pycord = discord_ver or pkg_ver('py-cord') or pkg_ver('pycord')
+
+            ffmpeg_path = shutil.which('ffmpeg') or os.getenv('FFMPEG_PATH')
+            ffmpeg_ok = None
+            if ffmpeg_path:
+                try:
+                    p = subprocess.run([ffmpeg_path, '-version'], capture_output=True, text=True, timeout=3)
+                    ffmpeg_ok = p.stdout.splitlines()[0] if p and p.stdout else str(p.returncode)
+                except Exception as e:
+                    ffmpeg_ok = f"error: {e}"
+            else:
+                ffmpeg_ok = 'not found'
+
+            env_msg = (
+                f"Python: {py_ver}\n"
+                f"discord/py-cord: {pycord}\n"
+                f"PyNaCl: {pynacl}\n"
+                f"opuslib/opus: {opuslib}\n"
+                f"ffmpeg: {ffmpeg_ok}\n"
+                f"FFMPEG_PATH env: {os.getenv('FFMPEG_PATH')}\n"
+            )
+            await self.safe_send(message.channel, env_msg)
 
             # Only show typing if in a text channel
             if hasattr(message.channel, "trigger_typing"):
